@@ -1,6 +1,6 @@
 import { query } from "../connect/connect.js";
 import { z } from "zod";
-import type { AuthRegister, AuthBody,  } from "../types/AuthType.js";
+import type { UserBase, AuthBody,   } from "../types/AuthType.js";
 //Utilizamos Zod para validar los datos de entrada
 export const RegisterUser = z.object({
   gym_name: z.string().min(3).max(100),
@@ -14,7 +14,7 @@ export const LoginUser = z.object({
   email: z.string().email().min(5).max(100),
   password: z.string().min(6).max(100),
 });
-export const RegisterAdmin = async (data: AuthRegister): Promise<AuthRegister> => {
+export const RegisterAdmin = async (data: UserBase): Promise<UserBase> => {
     // Validamos datos de entrada
   const validatedData = RegisterUser.parse(data);
   const slug = validatedData.gym_name.toLowerCase().replace(/\s+/g, '-').replace(/[^\w\-]+/g, '');
@@ -38,12 +38,12 @@ export const RegisterAdmin = async (data: AuthRegister): Promise<AuthRegister> =
 };
 
 // Funcion para obtener el usuario por gmail
-export const GetUserByEmail = async (email: string): Promise<AuthBody | null> => {
+export const GetUserByEmail = async (email: string): Promise<UserBase | null> => {
     const sql = `SELECT u.*, g.system_plan 
     FROM users u 
     LEFT JOIN gyms g ON u.gym_id = g.id 
     WHERE u.email = $1`;
     const result = await query(sql, [email]);
     if(result.rows.length === 0) return null;
-    return result.rows[0];
+    return result.rows[0] as UserBase;
 }
