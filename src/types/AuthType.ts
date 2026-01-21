@@ -19,3 +19,12 @@ export interface AuthBody extends Omit<UserBase, "id"> {
     password: string;
     gym_name: string;
 }
+
+export type UserRole = 'super_admin' | 'gym_owner';
+export type SystemPlan = 'Basic' | 'Medium' | 'Premium';
+export interface TokenPayload {
+    id: number;
+    gym_id: number;
+    role: UserRole;
+    system_plan: SystemPlan
+}

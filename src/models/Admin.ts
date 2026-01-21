@@ -1,14 +1,14 @@
 import { query } from "../connect/connect.js";
 
 // funcion para guardar el token
-export const saveRecovery = async (email: string, token: string) => {
+export const savePassword = async (email: string, token: string) => {
     const sql = `INSERT INTO recovery (email, token) VALUES ($1, $2)`;
     await query(sql, [email, token]);
     return;
 }
 
 // funcion para obtener el token
-export const getRecovery = async (email: string, token: string) => {
+export const getPassword = async (email: string, token: string) => {
     const sql = `SELECT * FROM recovery WHERE email = $1 AND token = $2 ORDER BY created_at DESC LIMIT 1`;
     const results = await query(sql, [email, token]);
     return results.rows[0];

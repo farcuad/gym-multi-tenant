@@ -1,7 +1,7 @@
 import type { Request, Response } from "express";
 import bycrypt from "bcrypt";
 import { GetUserByEmail, RegisterAdmin } from "../models/Auth.js";
-import { saveRecovery, getRecovery, updatePassword } from "../models/Admin.js";
+import { savePassword, getPassword, updatePassword } from "../models/Admin.js";
 import { generateToken } from "../utils/jwt.js";
 import { transporter } from "../utils/mailer.js";
 export const registerAdmin = async (req: Request, res: Response) => {
@@ -100,7 +100,7 @@ export const forgotPassword = async (req: Request, res: Response) => {
   // Generamos un token aleatorio
   const token = Math.floor(100000 + Math.random() * 900000).toString();
   // Se lo pasamos a la base de datos
-  await saveRecovery(email, token);
+  await savePassword(email, token);
   // Enviamos el correo
   const emailTemplate = `
 <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #e0e0e0; border-radius: 8px; overflow: hidden;">
@@ -141,7 +141,7 @@ export const resetPassword = async (req: Request, res: Response) => {
   // Obtenemos los datos del cuerpo de la soclicitud
   const { email, token, newPassword } = req.body;
   // Confirmamos que el usuario exista
-  const recovery = await getRecovery(email, token);
+  const recovery = await getPassword(email, token);
   // Si no existe, devolvemos un error
   if (!recovery) {
     return res.status(404).json({ error: "Código Incorrecto" });

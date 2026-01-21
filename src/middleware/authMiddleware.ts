@@ -1,5 +1,5 @@
 import type { Request, Response, NextFunction } from "express";
-import type { TokenPlayLoad } from "../types/AuthType.js";
+import type { TokenPayload } from "../types/AuthType.js";
 import jwt from "jsonwebtoken";
 // Traemos la clave secreta desde el .env
 const JWT_SECRET = process.env.JWT_SECRET || "your_jwt_secret_key";
@@ -15,12 +15,9 @@ export const authToken = (req: Request, res: Response, next: NextFunction) => {
 
     try {
         // Verificamos el token
-        const decoded = jwt.verify(token, JWT_SECRET) as TokenPlayLoad;
-        req.user =  {
-            id: decoded.id,
-            gym_id: decoded.gym_id,
-            role: decoded.role,
-        };
+        const decoded = jwt.verify(token, JWT_SECRET) as TokenPayload;
+        // Guardamos el id del usuario en la solicitud
+        req.user = decoded;
         // Si el token es válido, pasamos al siguiente middleware
         next();
     }catch (error) {
