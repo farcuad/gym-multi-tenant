@@ -35,13 +35,15 @@ export const checkSubcription = async (req: Request, res: Response, next: NextFu
       req.user.system_plan = "Basic";
       return next();
     }
+
+    // Validación de Expiración
     if (!gym.expiration_date) {
       return res.status(403).json({
         error: "Plan inactivo",
         message: "Tu acceso ha caducado, renueva tu suscripción",
       });
     }
-    // Validación de Expiración
+    
     const now = new Date();
     const expiration = new Date(gym.expiration_date);
 
