@@ -42,6 +42,10 @@ export const analizarGanancias = async (req: Request, res: Response) => {
             break;
 
           case "registrarCliente":
+            if (!args.name || !args.cedula || !args.phone) {
+              data = { error: "Datos incompletos"}
+              break;
+            }
             data = await registerClient({
               ...args,
               gym_id: gymId,
@@ -73,9 +77,7 @@ export const analizarGanancias = async (req: Request, res: Response) => {
             }
 
             const fechaVencimiento = new Date(fechaInicioISO);
-            fechaVencimiento.setDate(
-              fechaVencimiento.getDate() + plan.duration_day,
-            );
+            fechaVencimiento.setDate(fechaVencimiento.getDate() + plan.duration_day);
 
             const membershipArgs = {
               gym_id: Number(gymId),

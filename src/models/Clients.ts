@@ -8,21 +8,25 @@ export const createClient = z.object({
     phone: z.string(),
     fecha_ingreso: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, {
         message: "El formato debe ser YYYY-MM-DD"
-    }),
-    activo: z.boolean(),
+    }).optional(),
+    activo: z.boolean().optional(),
     gym_id: z.number(),
 })
 
 // Funcion para registrar un nuevo cliente
 export const registerClient = async (data: unknown): Promise<ClientBody> => {
     const validatedData = createClient.parse(data);
+    const fechaIngreso =
+    validatedData.fecha_ingreso ?? new Date().toISOString().slice(0, 10);
+
+  const activo = validatedData.activo ?? true;
     const sql = "INSERT INTO clients (name, cedula, phone, fecha_ingreso, activo, gym_id) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *";
     const values = [
         validatedData.name,
         validatedData.cedula,
         validatedData.phone,
-        validatedData.fecha_ingreso,
-        validatedData.activo,
+        fechaIngreso,
+        activo,
         validatedData.gym_id,
     ];
     const result = await query(sql, values);
