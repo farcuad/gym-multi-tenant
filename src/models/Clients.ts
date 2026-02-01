@@ -13,6 +13,13 @@ export const createClient = z.object({
     gym_id: z.number(),
 })
 
+export const updateClientSchema = z.object({
+  name: z.string().min(3).max(100).optional(),
+  cedula: z.string().optional(),
+  phone: z.string().optional(),
+  activo: z.boolean().optional(),
+});
+
 // Funcion para registrar un nuevo cliente
 export const registerClient = async (data: unknown): Promise<ClientBody> => {
     const validatedData = createClient.parse(data);
@@ -51,7 +58,7 @@ export const getClientsByGymId = async (gym_id: number): Promise<ClientBody[]> =
  // Funcion para actualizar un cliente por id
 export const updateClientById = async (id: number, gym_id: number, data: unknown): Promise<ClientBody | null> => {
     // Validamos los datos de entrada
-    const validateData = createClient.partial().parse(data);
+    const validateData = updateClientSchema.partial().parse(data);
     // Construimos la consulta dinamicamente
     const fields = Object.keys(validateData);
     const values = Object.values(validateData);
