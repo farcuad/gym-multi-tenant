@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { loginAdmin, registerAdmin, resetPassword, forgotPassword } from "../controllers/AuthController.js";
 import { createClient, fetchClientsByGymId, fetchClientById, updateClient, deleteClient, alertClient } from "../controllers/ClientController.js";
-import { createMembership, getMembership, updateMembership, deleteMemberships} from "../controllers/MembershipsController.js";
+import { createMembership, getMembership, renewMembership, deleteMemberships} from "../controllers/MembershipsController.js";
 import { createPlan, fetchPlansByGymId, modifyPlan, removePlan } from "../controllers/PlansController.js";
 import { getDashboardData, updatePlan } from "../controllers/AdminSuperiorController.js";
 import { analizarGanancias } from "../controllers/AiController.js";
@@ -35,7 +35,7 @@ router.delete("/clients/:id", deleteClient);
 // Rutas para las membresias
 router.post("/memberships", createMembership);
 router.get("/memberships", getMembership);
-router.put("/memberships/:id", updateMembership);
+router.post("/memberships/:id/renew", renewMembership);
 router.delete("/memberships/:id", deleteMemberships);
 // Rutas para los planes
 router.post("/plans", createPlan);

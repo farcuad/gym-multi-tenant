@@ -5,7 +5,7 @@ export interface MembershipBody {
     plan_id: number;
     fecha_inicio: string;
     fecha_membresias: string;
-    estado: 'activo' | 'vencido' | 'suspendido';
+    estado: 'activo' | 'pendiente' | 'suspendido';
 }
 
 export type CreateMembershipDTO = Omit<MembershipBody, 'id'>;

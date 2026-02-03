@@ -45,7 +45,7 @@ export const getMembershipById = async (id: number, gym_id: number): Promise<Mem
     return result.rows[0] || null;
 }
 // Funcion para actualizar la membresía
-export const updatedMembership = async (id: number, gym_id: number, data: UpdateMembershipDTO): Promise<MembershipBody | null> => { 
+export const nenewdMembership = async (id: number, gym_id: number, data: UpdateMembershipDTO): Promise<MembershipBody | null> => { 
     // Validamos los datos a actualizar usando zod de forma parcial
     const validateData = MemberSchema.partial().parse(data);
     // Construimos la consulta dinámica para actualizar solo los campos proporcionados
