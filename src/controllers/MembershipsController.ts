@@ -55,7 +55,7 @@ export const renewMembership = async (req: Request, res: Response) => {
     // Extraemos el gym_id del token de autenticación
     const gym_id = Number(req.user.gym_id);
     // Extraemos el plan_id del cuerpo de la solicitud
-    const { plan_id } = req.body;
+    const { plan_id } = req.body || {};
 
     // Obtenemos la membresía
     const membership = await getMembershipById(id, gym_id);
