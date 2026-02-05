@@ -8,7 +8,7 @@ export const MemberSchema = z.object({
   plan_id: z.number(),
   fecha_inicio: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
   fecha_membresias: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
-  estado: z.string().default("activo"),
+  estado: z.enum(["activo", "pendiente", "suspendido"]).default("activo"),
 });
 
 //Funcion para registrar una nueva membresía
@@ -24,7 +24,6 @@ export const registerMembership = async ( data: CreateMembershipDTO): Promise<Me
     validatedData.fecha_membresias,
     validatedData.estado,
   ];
-
   const result = await query(sql, values);
   return result.rows[0];
 };

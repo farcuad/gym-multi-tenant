@@ -84,9 +84,10 @@ export const renewMembership = async (req: Request, res: Response) => {
     }
     // Actualizamos la fecha de vencimiento
     newEndDate.setDate(newEndDate.getDate() + plan.duration_day);
+    const fecha = newEndDate.toISOString().slice(0, 10);
     const membershipData = {
         plan_id: plan.id,
-        fecha_membersias: newEndDate.toISOString().split("T")[0],
+        fecha_membresias: fecha,
         estado: "activo" as "activo" | "pendiente" | "suspendido",
     }
     // Hacemos la consulta
