@@ -31,7 +31,8 @@ export const registerMembership = async ( data: CreateMembershipDTO): Promise<Me
 // Funcion para obtener la membresía por gym_id
 export const getMembershipByGymId = async (gym_id: number): Promise<MembershipBody[]> => {
   const sql = ` SELECT  m.id, m.plan_id, c.name as client_name, c.phone as client_phone, p.name as plan_name,  p.price as plan_price,m.fecha_inicio,
-      m.fecha_membresias as fecha_vencimiento,  m.estado FROM memberships m JOIN clients c ON m.client_id = c.id  JOIN plans p ON m.plan_id = p.id 
+      m.fecha_membresias as fecha_vencimiento, CASE WHEN m.fecha_membresias < CURRENT_DATE THEN 'vencido' ELSE m.estado
+      END AS estado FROM memberships m JOIN clients c ON m.client_id = c.id  JOIN plans p ON m.plan_id = p.id 
        WHERE m.gym_id = $1  ORDER BY m.fecha_membresias ASC`;
     const result = await query(sql, [gym_id]);
     return result.rows;
