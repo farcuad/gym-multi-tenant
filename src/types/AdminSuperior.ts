@@ -8,7 +8,6 @@ export interface GymSummary {
 }
 
 export interface PlanUpgradeData {
-    id: number;
     gymId: number;
     planType: 'Basic' | 'Medium' | 'Premium';
     monts: number;

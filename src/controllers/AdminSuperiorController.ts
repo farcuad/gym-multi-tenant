@@ -27,7 +27,7 @@ export const updatePlan = async (req: Request, res: Response) => {
       return res.status(400).json({ error: "Tipo de plan inválido" });
     }
     // Hacemos la consulta pasandole los parametros
-    await updatePlanGyms({ id: gymId, gymId: gymId, planType, monts, price });
+    await updatePlanGyms({ gymId: gymId, planType, monts, price });
     return res.status(200).json({ message: `Plan ${planType} actualizado correctamente` });
   } catch (error) {
     return res.status(500).json({

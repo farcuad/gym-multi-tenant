@@ -24,11 +24,11 @@ export const getAllGymsData = async (): Promise<GymSummary[]> => {
 export const updatePlanGyms = async (data: PlanUpgradeData)=> {
     await query("BEGIN");
     try {
-        const { gymId, planType, price} = data;
+        const { gymId, planType, price, monts} = data;
         await query("UPDATE gyms SET system_plan = $1 WHERE id = $2", [planType, gymId]);
 
         const endDate = new Date();
-        endDate.setMonth(endDate.getMonth() + data.monts);
+        endDate.setMonth(endDate.getMonth() + monts);
 
         await query(
             "INSERT INTO gym_subscriptions (gym_id, plan_type, price_paid, end_date) VALUES ($1, $2, $3, $4)",
