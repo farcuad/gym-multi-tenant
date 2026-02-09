@@ -15,9 +15,7 @@ if (!API_KEY) {
 
 const genAI = new GoogleGenerativeAI(API_KEY);
 
-// ===============================
-// TOOLS (FUNCTION DECLARATIONS)
-// ===============================
+// Tools calling para geminis
 export const gymTools: FunctionDeclaration[] = [
   {
     name: "buscarClientes",
@@ -73,9 +71,7 @@ export const gymTools: FunctionDeclaration[] = [
 ];
 
 
-// ===============================
-// MODEL
-// ===============================
+// Exportamos el modelo con la instrucción del sistema para que el chatStore lo use. Esto asegura que cada usuario tenga un chat con el mismo modelo e instrucciones.
 export const getModel = () => {
   const hoy = new Date().toISOString().split("T")[0];
 

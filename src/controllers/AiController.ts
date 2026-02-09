@@ -1,6 +1,7 @@
 // Controlador para la inteligencia artificial
 import type { Request, Response } from "express";
 import { getModel } from "../config/geminis.js";
+import { getChatForUser } from "../config/chatStore.js";
 import { registerClient, getClientsByGymId } from "../models/Clients.js";
 import { registerPlan, getPlansByGymId } from "../models/Plans.js";
 import {
@@ -10,11 +11,12 @@ import {
 export const analizarGanancias = async (req: Request, res: Response) => {
   try {
     const gymId = req.user.gym_id;
+    const userId = String(req.user.id);
     const { preguntaUsuario } = req.body;
 
     // Iniciamos el chat
     const modelAi = getModel();
-    const chat = modelAi.startChat();
+    const chat = getChatForUser(userId, modelAi);
     let result = await chat.sendMessage(preguntaUsuario);
 
     // Bucle Multi-Turno: Permite encadenar (Buscar -> Registrar -> Asignar)
