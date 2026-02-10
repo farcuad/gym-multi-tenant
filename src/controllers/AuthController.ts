@@ -80,9 +80,7 @@ export const loginAdmin = async (req: Request, res: Response) => {
       gym_id: existingUser.gym_id,
       role: existingUser.role,
     });
-    res
-      .status(200)
-      .json({ message: "Inicio de sesion exitoso", token: token, user });
+    res.status(200).json({ message: "Inicio de sesion exitoso", token: token, user });
   } catch (error) {
     return res.status(400).json({ error: (error as Error).message });
   }
