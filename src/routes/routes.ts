@@ -4,6 +4,7 @@ import { createClient, fetchClientsByGymId, fetchClientById, updateClient, delet
 import { createMembership, getMembership, renewMembership, deleteMemberships} from "../controllers/MembershipsController.js";
 import { createPlan, fetchPlansByGymId, modifyPlan, removePlan } from "../controllers/PlansController.js";
 import { getDashboardData, updatePlan } from "../controllers/AdminSuperiorController.js";
+import { getPayments } from "../controllers/PaymentsController.js";
 import { analizarGanancias } from "../controllers/AiController.js";
 import { authToken } from "../middleware/authMiddleware.js";
 import { isAdmin } from "../middleware/isAdmin.js";
@@ -42,6 +43,8 @@ router.post("/plans", createPlan);
 router.get("/plans", fetchPlansByGymId);
 router.put("/plans/:id", modifyPlan);
 router.delete("/plans/:id", removePlan);
+// Rutas para los pagos
+router.get("/payments", getPayments);
 // Ruta para geminis
 router.post("/analizar", requirePlan("Medium") , analizarGanancias);
 

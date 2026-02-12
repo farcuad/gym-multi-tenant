@@ -1,13 +1,15 @@
 import type { Request, Response } from 'express';
 import { registerMembership, getMembershipByGymId, nenewdMembership, deleteMembership, getMembershipById } from '../models/Memberships.js';
 import { getPlansByGymId } from '../models/Plans.js';
+import { registerPayment } from '../models/Payments.js';
+import type { CreatePaymentDTO } from '../types/Payments.js';
 // función para crear una nueva membresía
 export const createMembership = async (req: Request, res: Response) => {
     try {
         // Obtener el gym_id del token de autenticación
         const gym_id_token = req.user.gym_id;
         // Obtenemos los datos de la membresía del cuerpo de la solicitud
-        const { client_id, plan_id, fecha_inicio } = req.body;
+        const { client_id, plan_id, fecha_inicio, payment_info } = req.body;
         const plan = await getPlansByGymId( Number(gym_id_token) );
         const planSeleccionado = plan.find(plan => plan.id === Number(plan_id));
         if (!planSeleccionado) {
@@ -28,7 +30,21 @@ export const createMembership = async (req: Request, res: Response) => {
         };
         // Registramos la membresía
         const membership = await registerMembership(membershipData);
-        res.status(201).json({ message: "Membresía registrada correctamente", membership });
+        const paymentData: CreatePaymentDTO = {
+            gym_id: Number(gym_id_token),
+            membership_id: membership.id,
+            client_id: Number(client_id),
+            plan_price_usd: Number(planSeleccionado.price),
+            chosen_rate_type: payment_info.chosen_rate_type,
+            exchange_rate: Number(payment_info.exchange_rate),
+            amount_paid_bs: Number(payment_info.amount_paid_bs),
+            payment_method: payment_info.payment_method,
+            reference: payment_info.reference,
+            status: "Confirmado" as "Confirmado" | "Pendiente",
+        };
+
+        const payment = await registerPayment(paymentData);
+        res.status(201).json({ message: "Membresía y pago registrados correctamente", membership, payment });
     } catch (error) {
         res.status(400).json({ error: (error as Error).message });
     }
