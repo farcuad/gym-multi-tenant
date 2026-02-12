@@ -35,8 +35,8 @@ export const registerPayment = async (data: CreatePaymentDTO) => {
   return result.rows[0];
 };
 
-export const getPayment = async (gym_id: number): Promise<PaymentHistoryDTO[]> => {
-  const sql = `
+export const getPayment = async (gym_id: number, startDate?: string, endDate?: string): Promise<PaymentHistoryDTO[]> => {
+  let sql = `
     SELECT 
       p.id,
       p.amount_paid_bs,
@@ -54,10 +54,16 @@ export const getPayment = async (gym_id: number): Promise<PaymentHistoryDTO[]> =
     INNER JOIN memberships m ON p.membership_id = m.id
     INNER JOIN plans pl ON m.plan_id = pl.id
     WHERE p.gym_id = $1
-    ORDER BY p.created_at DESC;
   `;
-  
-  const result = await query(sql, [gym_id]);
+  const params: any[] = [gym_id];
+
+  if (startDate && endDate) {
+    sql += ` AND p.created_at::date BETWEEN $2 AND $3`;
+    params.push(startDate, endDate);
+  }
+
+  sql += ` ORDER BY p.created_at DESC`;
+  const result = await query(sql, params);
   return result.rows;
 };
 

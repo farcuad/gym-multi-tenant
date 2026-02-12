@@ -68,6 +68,23 @@ export const gymTools: FunctionDeclaration[] = [
       required: ["client_id", "plan_id"],
     },
   },
+  {
+    name: "consultarPagos",
+    description: "Obtiene el historial de pagos (ingresos) del gimnasio, incluyendo montos en bolívares, dólares, métodos de pago y nombres de clientes.",
+    parameters: {
+      type: SchemaType.OBJECT,
+      properties: {
+        startDate: { 
+          type: SchemaType.STRING, 
+          description: "Fecha opcional de inicio (YYYY-MM-DD)" 
+        },
+        endDate: { 
+          type: SchemaType.STRING, 
+          description: "Fecha opcional de fin (YYYY-MM-DD)" 
+        },
+      },
+    },
+  }
 ];
 
 
@@ -92,6 +109,9 @@ REGLAS OBLIGATORIAS:
 - Si el cliente no existe: registrarCliente → luego asignarMembresia.
 - Responde siempre breve, clara y motivadora.
 - fecha_ingreso y activo son asignados automáticamente por el sistema.
+- Si la función 'consultarPagos' devuelve un array vacío, responde exactamente que no hay registros para ese periodo.
+- NO des respuestas basadas en tus propios conocimientos sobre el gimnasio; usa ÚNICAMENTE los datos devueltos por las funciones.
+- Si te piden datos del "mes pasado" o "esta semana", calcula las fechas correctas basándote en la FECHA DE HOY y pásalas a la función.
 `,
   });
 };
