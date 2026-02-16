@@ -126,11 +126,17 @@ export const deleteMemberships = async (req: Request, res: Response) => {
         // Obtenemos el id del cliente de los parámetros de la ruta
         const id = Number(req.params.id);
         // Obtenemos el gym_id del token de autenticación
-        const gym_id_token = req.user.gym_id;
+        const gym_id = Number(req.user.gym_id);
         // Eliminamos la membresía
-        const deleted = await deleteMembership(id, Number(gym_id_token));
+        const deleted = await deleteMembership(id, gym_id);
         res.status(200).json({ message: "Membresía eliminada correctamente", deleted });
-    } catch (error) {
-        res.status(400).json({ error: (error as Error).message });
+    } catch (error: any) {
+      // Manejamos error de postgresql
+      if(error.code === '23503'){
+        return res.status(400).json({ message: "No se puede eliminar la membresía porque tiene pagos asociados" });
+      }
+      // Si algo falla, mostramos error por defecto
+      return res.status(500).json({ message: "Ocurrio un error al eliminar la membresia" });
+
     }
 };
