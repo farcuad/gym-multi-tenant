@@ -1,15 +1,40 @@
 import { Router } from "express";
-import { loginAdmin, registerAdmin, resetPassword, forgotPassword } from "../controllers/AuthController.js";
-import { createClient, fetchClientsByGymId, fetchClientById, updateClient, deleteClient, alertClient } from "../controllers/ClientController.js";
-import { createMembership, getMembership, renewMembership, deleteMemberships} from "../controllers/MembershipsController.js";
-import { createPlan, fetchPlansByGymId, modifyPlan, removePlan } from "../controllers/PlansController.js";
-import { getDashboardData, updatePlan } from "../controllers/AdminSuperiorController.js";
+import {
+  loginAdmin,
+  registerAdmin,
+  resetPassword,
+  forgotPassword,
+} from "../controllers/AuthController.js";
+import {
+  createClient,
+  fetchClientsByGymId,
+  fetchClientById,
+  updateClient,
+  deleteClient,
+  alertClient,
+} from "../controllers/ClientController.js";
+import {
+  createMembership,
+  getMembership,
+  renewMembership,
+  deleteMemberships,
+} from "../controllers/MembershipsController.js";
+import {
+  createPlan,
+  fetchPlansByGymId,
+  modifyPlan,
+  removePlan,
+} from "../controllers/PlansController.js";
+import {
+  getDashboardData,
+  updatePlan,
+} from "../controllers/AdminSuperiorController.js";
 import { getPayments } from "../controllers/PaymentsController.js";
 import { analizarGanancias } from "../controllers/AiController.js";
 import { authToken } from "../middleware/authMiddleware.js";
 import { isAdmin } from "../middleware/isAdmin.js";
-import { checkSubcription } from "../middleware/checkSubcriptions.js";
 import { requirePlan } from "../middleware/requirePlan.js";
+import { loadSubscription } from "../middleware/loadSubcription.js";
 const router = Router();
 // Rutas publicas
 router.post("/register", registerAdmin);
@@ -19,13 +44,11 @@ router.post("/admin/forgot-password", forgotPassword);
 router.post("/admin/password", resetPassword);
 
 // Middleware para proteger las rutas siguientes
-router.use(authToken); 
+router.use(authToken, loadSubscription);
 // Rutas para el admin superior
 router.get("/dashboard", isAdmin, getDashboardData);
-router.put("/plans-admin/:id", isAdmin , updatePlan);
+router.put("/plans-admin/:id", isAdmin, updatePlan);
 
-// Middleware para proteger las rutas siguientes
-router.use(checkSubcription);
 // Rutas para los clientes
 router.get("/clients/alert", alertClient);
 router.post("/clients", createClient);
@@ -46,7 +69,7 @@ router.delete("/plans/:id", removePlan);
 // Rutas para los pagos
 router.get("/payments", getPayments);
 // Ruta para geminis
-router.post("/analizar", requirePlan("Medium") , analizarGanancias);
+router.post("/analizar", requirePlan("Medium"), analizarGanancias);
 
 //router.post("/rutinas", requirePlan("Premiun") , analizarGanancias);
 export default router;
