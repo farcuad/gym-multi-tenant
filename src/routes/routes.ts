@@ -35,6 +35,7 @@ import { authToken } from "../middleware/authMiddleware.js";
 import { isAdmin } from "../middleware/isAdmin.js";
 import { requirePlan } from "../middleware/requirePlan.js";
 import { loadSubscription } from "../middleware/loadSubcription.js";
+import { getSubscriptions } from "../controllers/SubsCriptionController.js";
 const router = Router();
 // Rutas publicas
 router.post("/register", registerAdmin);
@@ -49,6 +50,7 @@ router.use(authToken, loadSubscription);
 router.get("/dashboard", isAdmin, getDashboardData);
 router.put("/plans-admin/:id", isAdmin, updatePlan);
 
+router.get("/subscriptions", getSubscriptions);
 // Rutas para los clientes
 router.get("/clients/alert", alertClient);
 router.post("/clients", createClient);
