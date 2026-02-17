@@ -12,7 +12,9 @@ export const loadSubscription = async (
     return next();
   }
   const result = await query(
-    `SELECT * FROM gym_subscriptions WHERE gym_id = $1 ORDER BY end_date DESC LIMIT 1`,
+    `SELECT * FROM gym_subscriptions 
+   WHERE gym_id = $1 AND status = 'active' 
+   ORDER BY end_date DESC LIMIT 1`,
     [req.user.gym_id],
   );
 

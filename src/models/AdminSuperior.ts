@@ -26,10 +26,24 @@ export const updatePlanGyms = async (data: PlanUpgradeData) => {
   await query("BEGIN");
   try {
     const { gymId, planType, price, monts } = data;
-
-    const endDate = new Date();
+    const currentSub = await query(
+      "SELECT end_date FROM gym_subscriptions WHERE gym_id = $1 ORDER BY end_date DESC LIMIT 1",
+      [gymId],
+    );
+    let startDate = new Date();
+    if (currentSub.rows.length > 0) {
+      const currentEndDate = new Date(currentSub.rows[0].end_date);
+      if (currentEndDate > startDate) {
+        startDate = currentEndDate;
+      }
+    }
+    const endDate = new Date(startDate);
     endDate.setMonth(endDate.getMonth() + monts);
 
+    await query(
+      "UPDATE gym_subscriptions SET status = 'replaced' WHERE gym_id = $1 AND status = 'active'",
+      [gymId],
+    );
     await query(
       "INSERT INTO gym_subscriptions (gym_id, plan_type, price_paid, end_date) VALUES ($1, $2, $3, $4)",
       [gymId, planType, price, endDate],
