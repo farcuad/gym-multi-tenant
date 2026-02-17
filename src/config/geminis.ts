@@ -57,7 +57,8 @@ export const gymTools: FunctionDeclaration[] = [
   },
   {
     name: "asignarMembresia",
-    description: "Asigna un plan a un cliente. Si no se envía fecha_inicio, usa la fecha actual.",
+    description:
+      "Asigna un plan a un cliente. Si no se envía fecha_inicio, usa la fecha actual.",
     parameters: {
       type: SchemaType.OBJECT,
       properties: {
@@ -70,23 +71,23 @@ export const gymTools: FunctionDeclaration[] = [
   },
   {
     name: "consultarPagos",
-    description: "Obtiene el historial de pagos (ingresos) del gimnasio, incluyendo montos en bolívares, dólares, métodos de pago y nombres de clientes.",
+    description:
+      "Obtiene el historial de pagos (ingresos) del gimnasio, incluyendo montos en bolívares, dólares, métodos de pago y nombres de clientes.",
     parameters: {
       type: SchemaType.OBJECT,
       properties: {
-        startDate: { 
-          type: SchemaType.STRING, 
-          description: "Fecha opcional de inicio (YYYY-MM-DD)" 
+        startDate: {
+          type: SchemaType.STRING,
+          description: "Fecha opcional de inicio (YYYY-MM-DD)",
         },
-        endDate: { 
-          type: SchemaType.STRING, 
-          description: "Fecha opcional de fin (YYYY-MM-DD)" 
+        endDate: {
+          type: SchemaType.STRING,
+          description: "Fecha opcional de fin (YYYY-MM-DD)",
         },
       },
     },
-  }
+  },
 ];
-
 
 // Exportamos el modelo con la instrucción del sistema para que el chatStore lo use. Esto asegura que cada usuario tenga un chat con el mismo modelo e instrucciones.
 export const getModel = () => {
@@ -101,6 +102,7 @@ FECHA DE HOY: ${hoy}
 
 REGLAS OBLIGATORIAS:
 - NO inventes IDs.
+- PROHIBIDO mencionar nombres de funciones técnicas (ej. No digas 'buscarClientes()', 'asignarMembresia()', etc.).
 - SOLO usa IDs obtenidos mediante tools.
 - gym_id SIEMPRE es inyectado por el sistema, NUNCA lo pidas.
 - Los IDs de cliente, plan y membresía los genera el sistema automáticamente.
