@@ -4,6 +4,7 @@ import { GetUserByEmail, RegisterAdmin } from "../models/Auth.js";
 import { savePassword, getPassword, updatePassword } from "../models/Admin.js";
 import { generateToken } from "../utils/jwt.js";
 import { transporter } from "../utils/mailer.js";
+import type { UserRole, TokenPayload } from "../types/AuthType.js";
 export const registerAdmin = async (req: Request, res: Response) => {
   try {
     // Extraer datos del cuerpo de la solicitud
@@ -49,7 +50,9 @@ export const registerAdmin = async (req: Request, res: Response) => {
       subject: "Bienvenido a FitLog",
       html: welcomeTemplate,
     });
-    res.status(201).json({ message: "Admin registrado correctamente", user: user });
+    res
+      .status(201)
+      .json({ message: "Admin registrado correctamente", user: user });
   } catch (error) {
     return res.status(400).json({ error: (error as Error).message });
   }
@@ -67,7 +70,7 @@ export const loginAdmin = async (req: Request, res: Response) => {
     // Verificar contraseña
     const isPasswordValid = await bycrypt.compare(
       password,
-      existingUser.password
+      existingUser.password,
     );
     if (!isPasswordValid) {
       return res.status(401).json({ error: "Contraseña incorrecta" });
@@ -75,12 +78,16 @@ export const loginAdmin = async (req: Request, res: Response) => {
     // Enviamos respuesta exitosa
     const { password: _, ...user } = existingUser;
     // Generar token JWT
-    const token = generateToken({
+    const userPayload: TokenPayload = {
       id: existingUser.id,
       gym_id: existingUser.gym_id,
-      role: existingUser.role,
-    });
-    res.status(200).json({ message: "Inicio de sesion exitoso", token: token, user });
+      role: existingUser.role as UserRole,
+      plan_type: existingUser.plan_type,
+    };
+    const token = generateToken(userPayload);
+    res
+      .status(200)
+      .json({ message: "Inicio de sesion exitoso", token: token, user });
   } catch (error) {
     return res.status(400).json({ error: (error as Error).message });
   }

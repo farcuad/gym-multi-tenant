@@ -1,8 +1,11 @@
-import jwt from 'jsonwebtoken';
-import type { SignOptions } from 'jsonwebtoken';
+import jwt from "jsonwebtoken";
+import type { SignOptions } from "jsonwebtoken";
 // Traemos el token desde el .env
-const JWT_SECRET = process.env.JWT_SECRET || 'your-default-secret-key'; 
+const JWT_SECRET = process.env.JWT_SECRET || "your-default-secret-key";
 // Función para generar un token JWT
-export const generateToken = (payload: object, expiresIn: SignOptions['expiresIn'] = '8h'): string => {
-    return jwt.sign(payload, JWT_SECRET, { expiresIn });
-}
+export const generateToken = (
+  payload: object,
+  expiresIn: SignOptions["expiresIn"] = "8h",
+): string => {
+  return jwt.sign(payload, JWT_SECRET, { expiresIn });
+};

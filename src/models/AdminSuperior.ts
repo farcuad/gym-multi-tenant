@@ -26,10 +26,6 @@ export const updatePlanGyms = async (data: PlanUpgradeData) => {
   await query("BEGIN");
   try {
     const { gymId, planType, price, monts } = data;
-    await query("UPDATE gyms SET system_plan = $1 WHERE id = $2", [
-      planType,
-      gymId,
-    ]);
 
     const endDate = new Date();
     endDate.setMonth(endDate.getMonth() + monts);

@@ -6,7 +6,7 @@ export interface UserBase {
   password: string;
   role: string;
   gym_id: number;
-  system_plan?: string;
+  plan_type: string;
 }
 
 // Tipado para el body de registro (sin id y con gym_id)
@@ -24,4 +24,5 @@ export interface TokenPayload {
   id: number;
   gym_id: number;
   role: UserRole;
+  plan_type: string;
 }
