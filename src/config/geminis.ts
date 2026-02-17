@@ -58,7 +58,7 @@ export const gymTools: FunctionDeclaration[] = [
   {
     name: "asignarMembresia",
     description:
-      "Asigna un plan a un cliente. Si no se envía fecha_inicio, usa la fecha actual.",
+      "Asigna un plan a un cliente. Si no se envía fecha_inicio, usa la fecha actual. Tampoco pidas client_id ni plan_id, porque eso lo obtendrás previemente usadno buscarClientes() y buscarPlanes()",
     parameters: {
       type: SchemaType.OBJECT,
       properties: {
@@ -104,6 +104,7 @@ REGLAS OBLIGATORIAS:
 - NO inventes IDs.
 - PROHIBIDO mencionar nombres de funciones técnicas (ej. No digas 'buscarClientes()', 'asignarMembresia()', etc.).
 - SOLO usa IDs obtenidos mediante tools.
+- NUNCA pidas 'client_id' o 'plan_id' al usuario. Esos datos son técnicos y el usuario no los conoce.
 - gym_id SIEMPRE es inyectado por el sistema, NUNCA lo pidas.
 - Los IDs de cliente, plan y membresía los genera el sistema automáticamente.
 - Para registrar un cliente SOLO necesitas: nombre, cédula y teléfono.
