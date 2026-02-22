@@ -6,9 +6,12 @@ export const createClient = z.object({
   name: z.string().min(3).max(100),
   cedula: z.string(),
   phone: z.string(),
-  fecha_ingreso: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, {
+  fecha_ingreso: z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/, {
       message: "El formato debe ser YYYY-MM-DD",
-    }).optional(),
+    })
+    .optional(),
   activo: z.boolean().optional(),
   gym_id: z.number(),
 });
@@ -42,7 +45,9 @@ export const registerClient = async (data: unknown): Promise<ClientBody> => {
 };
 
 // Funcion para obtener todos los clientes de un gimnasio
-export const getClientsByGymId = async ( gym_id: number, ): Promise<ClientBody[]> => {
+export const getClientsByGymId = async (
+  gym_id: number,
+): Promise<ClientBody[]> => {
   const sql = "SELECT * FROM clients WHERE gym_id = $1";
   const result = await query(sql, [gym_id]);
   return result.rows;
@@ -60,7 +65,11 @@ export const getClientById = async (
 };
 
 // Funcion para actualizar un cliente por id
-export const updateClientById = async ( id: number, gym_id: number, data: unknown,): Promise<ClientBody | null> => {
+export const updateClientById = async (
+  id: number,
+  gym_id: number,
+  data: unknown,
+): Promise<ClientBody | null> => {
   // Validamos los datos de entrada
   const validateData = updateClientSchema.partial().parse(data);
   // Construimos la consulta dinamicamente
@@ -81,31 +90,24 @@ export const updateClientById = async ( id: number, gym_id: number, data: unknow
 };
 
 // Funcion para eliminar un cliente por id
-export const deleteClientById = async (id: number, gym_id: number, ): Promise<boolean> => {
+export const deleteClientById = async (
+  id: number,
+  gym_id: number,
+): Promise<boolean> => {
   const sql = "DELETE FROM clients WHERE id = $1 AND gym_id = $2";
   const result = await query(sql, [id, gym_id]);
   return (result.rowCount ?? 0) > 0;
 };
 
 // funcion para alerta de cliente vencido
-export const alertClientExpired = async ( gymId: number, ): Promise<ClientBody[]> => {
+export const alertClientExpired = async (
+  gymId: number,
+): Promise<ClientBody[]> => {
   const sql = ` 
-    SELECT 
-    c.name, 
-    c.phone, 
-    c.cedula, 
-    m.fecha_membresias AS fecha_vencimiento,
-    p.name AS plan_name,
-    CASE 
-        WHEN m.fecha_membresias < CURRENT_DATE THEN 'vencido'
-        ELSE 'activo'
-    END AS estado_calculado
-FROM clients c
-INNER JOIN memberships m ON c.id = m.client_id 
-INNER JOIN plans p ON m.plan_id = p.id
-WHERE c.gym_id = $1 
-AND c.activo = true
-ORDER BY m.fecha_membresias ASC
+    c.name, c.phone, c.cedula, m.fecha_membresias AS fecha_vencimiento, 
+    p.name AS plan_name FROM clients c INNER JOIN
+     memberships m ON c.id = m.client_id INNER JOIN plans p ON m.plan_id = p.id WHERE c.gym_id = $1 AND 
+     c.activo = true AND m.estado = 'activo' AND m.fecha_membresias <= CURRENT_DATE ORDER BY m.fecha_membresias ASC
     `;
   const result = await query(sql, [gymId]);
   return result.rows;
