@@ -8,6 +8,8 @@ export interface Payment {
     chosen_rate_type: string;
     exchange_rate: number;
     amount_paid_bs: number;
+    amount_paid_usd: number;
+    plan_name: string;
     payment_method: string;
     reference?: string | null;
     status: 'Confirmado' | 'Pendiente';
