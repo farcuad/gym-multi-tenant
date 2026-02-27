@@ -31,7 +31,8 @@ export const gymTools: FunctionDeclaration[] = [
   },
   {
     name: "registrarCliente",
-    description: "Registra un nuevo cliente en el gimnasio.",
+    description:
+      "Registra un nuevo cliente en el gimnasio. Una vez lo crees, no digas su id.",
     parameters: {
       type: SchemaType.OBJECT,
       properties: {
@@ -44,7 +45,8 @@ export const gymTools: FunctionDeclaration[] = [
   },
   {
     name: "registrarPlan",
-    description: "Crea un nuevo plan de entrenamiento.",
+    description:
+      "Crea un nuevo plan de entrenamiento. Una vez lo crees, no digas su id.",
     parameters: {
       type: SchemaType.OBJECT,
       properties: {
