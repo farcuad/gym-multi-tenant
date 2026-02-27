@@ -4,7 +4,7 @@ import { getModel } from "../config/geminis.js";
 import { getChatForUser } from "../config/chatStore.js";
 import { registerClient, getClientsByGymId } from "../models/Clients.js";
 import { registerPlan, getPlansByGymId } from "../models/Plans.js";
-import { getMembershipByGymId, registerMembership, } from "../models/Memberships.js";
+import { getMembershipByGymId } from "../models/Memberships.js";
 import { getPayment } from "../models/Payments.js";
 export const analizarGanancias = async (req: Request, res: Response) => {
   try {
@@ -43,7 +43,7 @@ export const analizarGanancias = async (req: Request, res: Response) => {
 
           case "registrarCliente":
             if (!args.name || !args.cedula || !args.phone) {
-              data = { error: "Datos incompletos"}
+              data = { error: "Datos incompletos" };
               break;
             }
             data = await registerClient({
@@ -58,38 +58,6 @@ export const analizarGanancias = async (req: Request, res: Response) => {
               gym_id: gymId,
             });
             break;
-
-          case "asignarMembresia":
-            const formatDate = (date: Date): string =>
-              date.toISOString().slice(0, 10);
-
-            const fechaInicioISO =
-              typeof args.fecha_inicio === "string"
-                ? args.fecha_inicio
-                : formatDate(new Date());
-
-            const planes = await getPlansByGymId(gymId);
-            const plan = planes.find((p) => p.id === Number(args.plan_id));
-
-            if (!plan) {
-              data = { error: "Plan no encontrado" };
-              break;
-            }
-
-            const fechaVencimiento = new Date(fechaInicioISO);
-            fechaVencimiento.setDate(fechaVencimiento.getDate() + plan.duration_day);
-
-            const membershipArgs = {
-              gym_id: Number(gymId),
-              client_id: Number(args.client_id),
-              plan_id: Number(args.plan_id),
-              fecha_inicio: fechaInicioISO,
-              fecha_membresias: formatDate(fechaVencimiento),
-              estado: "activo" as const,
-            };
-
-            data = await registerMembership(membershipArgs);
-            break;
           case "consultarPagos":
             const { startDate, endDate } = args;
             data = await getPayment(gymId, startDate, endDate);
@@ -101,8 +69,6 @@ export const analizarGanancias = async (req: Request, res: Response) => {
         });
       }
 
-      // IMPORTANTE: Enviamos los resultados de las funciones de vuelta a Gemini
-      // Esto le permite ver los IDs que acaba de crear o buscar para el siguiente paso
       result = await chat.sendMessage(resultsForGemini);
       calls = result.response.functionCalls();
       loopCount++;

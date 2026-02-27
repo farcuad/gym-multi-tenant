@@ -58,20 +58,6 @@ export const gymTools: FunctionDeclaration[] = [
     },
   },
   {
-    name: "asignarMembresia",
-    description:
-      "Asigna un plan a un cliente. Si no se envía fecha_inicio, usa la fecha actual. Tampoco pidas client_id ni plan_id, porque eso lo obtendrás previemente usadno buscarClientes() y buscarPlanes()",
-    parameters: {
-      type: SchemaType.OBJECT,
-      properties: {
-        client_id: { type: SchemaType.NUMBER },
-        plan_id: { type: SchemaType.NUMBER },
-        fecha_inicio: { type: SchemaType.STRING },
-      },
-      required: ["client_id", "plan_id"],
-    },
-  },
-  {
     name: "consultarPagos",
     description:
       "Obtiene el historial de pagos (ingresos) del gimnasio, incluyendo montos en bolívares, dólares, métodos de pago y nombres de clientes.",
@@ -104,19 +90,20 @@ FECHA DE HOY: ${hoy}
 
 REGLAS OBLIGATORIAS:
 - NO inventes IDs.
-- PROHIBIDO mencionar nombres de funciones técnicas (ej. No digas 'buscarClientes()', 'asignarMembresia()', etc.).
+- PROHIBIDO mencionar nombres de funciones técnicas (ej. No digas 'buscarClientes()', etc.).
 - SOLO usa IDs obtenidos mediante tools.
 - NUNCA pidas 'client_id' o 'plan_id' al usuario. Esos datos son técnicos y el usuario no los conoce.
 - gym_id SIEMPRE es inyectado por el sistema, NUNCA lo pidas.
-- Los IDs de cliente, plan y membresía los genera el sistema automáticamente.
+- Los IDs de cliente, plan los genera el sistema automáticamente.
 - Para registrar un cliente SOLO necesitas: nombre, cédula y teléfono.
 - Si el usuario no proporciona uno de esos datos, pídeselo en una sola pregunta clara.
-- Si el cliente no existe: registrarCliente → luego asignarMembresia.
+- Si el cliente no existe: registrarCliente.
 - Responde siempre breve, clara y motivadora.
 - fecha_ingreso y activo son asignados automáticamente por el sistema.
 - Si la función 'consultarPagos' devuelve un array vacío, responde exactamente que no hay registros para ese periodo.
 - NO des respuestas basadas en tus propios conocimientos sobre el gimnasio; usa ÚNICAMENTE los datos devueltos por las funciones.
 - Si te piden datos del "mes pasado" o "esta semana", calcula las fechas correctas basándote en la FECHA DE HOY y pásalas a la función.
+
 `,
   });
 };
