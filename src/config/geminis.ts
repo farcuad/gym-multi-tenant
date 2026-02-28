@@ -58,6 +58,32 @@ export const gymTools: FunctionDeclaration[] = [
     },
   },
   {
+    name: "consultarMetricasIngresos",
+    description:
+      "Obtiene los ingresos totales en USD por cada mes de un año específico para análisis financiero.",
+    parameters: {
+      type: SchemaType.OBJECT,
+      properties: {
+        year: {
+          type: SchemaType.NUMBER,
+          description:
+            "Año a consultar (ej. 2024). Si no se especifica, usa el actual.",
+        },
+      },
+    },
+  },
+  {
+    name: "consultarMetricasNuevosClientes",
+    description:
+      "Obtiene la cantidad de nuevos clientes registrados por cada mes de un año específico.",
+    parameters: {
+      type: SchemaType.OBJECT,
+      properties: {
+        year: { type: SchemaType.NUMBER, description: "Año a consultar." },
+      },
+    },
+  },
+  {
     name: "consultarPagos",
     description:
       "Obtiene el historial de pagos (ingresos) del gimnasio, incluyendo montos en bolívares, dólares, métodos de pago y nombres de clientes.",
@@ -103,7 +129,10 @@ REGLAS OBLIGATORIAS:
 - Si la función 'consultarPagos' devuelve un array vacío, responde exactamente que no hay registros para ese periodo.
 - NO des respuestas basadas en tus propios conocimientos sobre el gimnasio; usa ÚNICAMENTE los datos devueltos por las funciones.
 - Si te piden datos del "mes pasado" o "esta semana", calcula las fechas correctas basándote en la FECHA DE HOY y pásalas a la función.
-
+- Tienes acceso a métricas mensuales de ingresos y nuevos clientes.
+- Si te piden un análisis de cómo va el gimnasio, usa AMBAS funciones para comparar si el aumento de clientes coincide con el aumento de ingresos.
+- Identifica tendencias: ej. "En marzo hubo un pico de clientes, pero los ingresos bajaron, quizás por alguna promoción".
+- Cuando des montos de dinero, usa siempre el símbolo $ y sé muy profesional.
 `,
   });
 };

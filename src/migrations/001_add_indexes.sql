@@ -22,3 +22,7 @@ ON plans (gym_id);
 --Pagos
 CREATE INDEX idx_payments_gym_created
 ON payments (gym_id, created_at DESC);
+
+--Indices para reportar los datos anuales de clientes nuevos y monto de usd
+CREATE INDEX idx_payments_month ON payments (DATE_TRUNC('month', created_at));
+CREATE INDEX idx_clients_simple_date ON clients (fecha_ingreso);
