@@ -10,7 +10,13 @@ export const getAllGymsData = async (): Promise<GymSummary[]> => {
     u.email as owner_email,
     s.plan_type,
     s.status,
-    s.end_date as expiration_date
+    s.end_date as expiration_date,
+    -- Calculamos si está vencido o a punto de vencer (menos de 5 días)
+    CASE 
+        WHEN s.end_date < CURRENT_DATE THEN 'expired'
+        WHEN s.end_date <= CURRENT_DATE + INTERVAL '5 days' THEN 'warning'
+        ELSE 'active'
+    END as health_status
 FROM gyms g
 INNER JOIN users u ON g.id = u.gym_id
 LEFT JOIN gym_subscriptions s ON g.id = s.gym_id
@@ -54,4 +60,15 @@ export const updatePlanGyms = async (data: PlanUpgradeData) => {
     await query("ROLLBACK");
     throw error;
   }
+};
+
+export const getHistoryGyms = async (gymId: number) => {
+  const sql = `
+    SELECT plan_type, price_paid, end_date, status, created_at
+    FROM gym_subscriptions
+    WHERE gym_id = $1
+    ORDER BY created_at DESC;
+  `;
+  const result = await query(sql, [gymId]);
+  return result.rows;
 };
