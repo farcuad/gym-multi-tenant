@@ -73,8 +73,8 @@ export const removePlan = async (req: Request, res: Response) => {
       return res.status(404).json({ error: "Plan no encontrado" });
     }
     res.status(200).json({ message: "Plan eliminado correctamente" });
-  } catch (error) {
-    if (error === "23503") {
+  } catch (error: any) {
+    if (error.code === "23503") {
       return res.status(400).json({
         message:
           "No se puede eliminar el plan porque tiene membresías asociadas",
