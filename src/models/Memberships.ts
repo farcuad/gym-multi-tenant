@@ -51,6 +51,10 @@ export const getMembershipById = async (id: number, gym_id: number): Promise<Mem
 export const nenewdMembership = async (id: number, gym_id: number, data: UpdateMembershipDTO): Promise<MembershipBody | null> => { 
     // Validamos los datos a actualizar usando zod de forma parcial
     const validateData = MemberSchema.partial().parse(data);
+    if (validateData.fecha_vencimiento && !validateData.fecha_membresias) {
+        validateData.fecha_membresias = validateData.fecha_vencimiento;
+        delete validateData.fecha_vencimiento; // Borramos el alias para que no ensucie el SQL
+    }
     // Construimos la consulta dinámica para actualizar solo los campos proporcionados
     const fields = Object.keys(validateData);
     const values = Object.values(validateData);
