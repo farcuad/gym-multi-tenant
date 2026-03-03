@@ -55,11 +55,8 @@ export const nenewdMembership = async (id: number, gym_id: number, data: UpdateM
     // 3. Convertimos a objeto plano para construir la consulta SQL
     const updatePayload: Record<string, any> = { ...validatedData };
 
-    if (data.fecha_inicio && !updatePayload.fecha_inicio) {
-        updatePayload.fecha_inicio = typeof data.fecha_inicio === 'string' 
-            ? data.fecha_inicio.split('T')[0] 
-            : data.fecha_inicio;
-    }
+    if (data.fecha_inicio) updatePayload.fecha_inicio = data.fecha_inicio;
+    
     // Manejo de la fecha (si viene como fecha_vencimiento la pasamos a la columna real)
     if (updatePayload.fecha_vencimiento && !updatePayload.fecha_membresias) {
         updatePayload.fecha_membresias = updatePayload.fecha_vencimiento;
