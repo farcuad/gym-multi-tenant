@@ -49,15 +49,17 @@ export const getMembershipById = async (id: number, gym_id: number): Promise<Mem
 // Funcion para actualizar la membresía
 export const nenewdMembership = async (id: number, gym_id: number, data: UpdateMembershipDTO): Promise<MembershipBody | null> => { 
     
-    // 1. Creamos una versión "relajada" del esquema donde TODO es opcional
     const UpdateSchema = MemberSchema.partial();
-
-    // 2. Validamos. Ahora Zod NO se quejará si no viene client_id o gym_id
     const validatedData = UpdateSchema.parse(data);
 
     // 3. Convertimos a objeto plano para construir la consulta SQL
     const updatePayload: Record<string, any> = { ...validatedData };
 
+    if (data.fecha_inicio && !updatePayload.fecha_inicio) {
+        updatePayload.fecha_inicio = typeof data.fecha_inicio === 'string' 
+            ? data.fecha_inicio.split('T')[0] 
+            : data.fecha_inicio;
+    }
     // Manejo de la fecha (si viene como fecha_vencimiento la pasamos a la columna real)
     if (updatePayload.fecha_vencimiento && !updatePayload.fecha_membresias) {
         updatePayload.fecha_membresias = updatePayload.fecha_vencimiento;
