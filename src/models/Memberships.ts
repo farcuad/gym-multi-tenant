@@ -40,7 +40,9 @@ export const getMembershipByGymId = async (gym_id: number): Promise<MembershipBo
 
 // Funcion para obtener la membresía por id
 export const getMembershipById = async (id: number, gym_id: number): Promise<MembershipBody | null> => {
-    const sql = `SELECT * FROM memberships WHERE id = $1 AND gym_id = $2`;
+    const sql = `SELECT m.id, m.plan_id, c.name as client_name, c.phone as client_phone, p.name as plan_name,  p.price as plan_price,m.fecha_inicio,
+      m.fecha_membresias as fecha_vencimiento, CASE WHEN m.fecha_membresias <= CURRENT_DATE THEN 'vencido' ELSE 'activo'
+      END AS estado FROM memberships m JOIN clients c ON m.client_id = c.id  JOIN plans p ON m.plan_id = p.id WHERE m.id = $1 AND m.gym_id = $2`;
     const result = await query(sql, [id, gym_id]);
     return result.rows[0] || null;
 }

@@ -33,7 +33,7 @@ export const registerPlan = async (data: CreatePlanDTO): Promise<PlanBody> => {
 
 // Funcion para obtener todos los planes de un gimnasio
 export const getPlansByGymId = async (gymId: number): Promise<PlanBody[]>=> {
-    const sql = "SELECT * FROM plans WHERE gym_id = $1 ORDER BY id ASC";
+    const sql = "SELECT id, gym_id, name, duration_day, price FROM plans WHERE gym_id = $1 ORDER BY id ASC";
     const result = await query(sql, [gymId]);
     return result.rows;
 }

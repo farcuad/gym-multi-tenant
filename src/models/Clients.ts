@@ -48,7 +48,7 @@ export const registerClient = async (data: unknown): Promise<ClientBody> => {
 export const getClientsByGymId = async (
   gym_id: number,
 ): Promise<ClientBody[]> => {
-  const sql = "SELECT * FROM clients WHERE gym_id = $1";
+  const sql = "SELECT id, gym_id, name, cedula, phone, fecha_ingreso, activo FROM clients WHERE gym_id = $1";
   const result = await query(sql, [gym_id]);
   return result.rows;
 };
@@ -58,7 +58,7 @@ export const getClientById = async (
   id: number,
   gym_id: number,
 ): Promise<ClientBody | null> => {
-  const sql = "SELECT * FROM clients WHERE id = $1 AND gym_id = $2";
+  const sql = "SELECT id, gym_id, name, cedula, phone, fecha_ingreso, activo  FROM clients WHERE id = $1 AND gym_id = $2";
   const result = await query(sql, [id, gym_id]);
   if (result.rows.length === 0) return null;
   return result.rows[0];
