@@ -174,7 +174,11 @@ export const renewMembership = async (req: Request, res: Response) => {
     const membershipData = {
       plan_id: plan.id,
       fecha_membresias: fecha,
-      estado: "activo" as "activo" | "pendiente" | "suspendido",
+      // Si no se extendió (se reactivó desde hoy), actualizamos fecha_inicio
+      ...(membership.estado !== "activo" || currentEnd.getTime() <= hoy.getTime() 
+          ? { fecha_inicio: `${hoy.getFullYear()}-${String(hoy.getMonth() + 1).padStart(2, '0')}-${String(hoy.getDate()).padStart(2, '0')}` } 
+          : {}),
+      estado: "activo" as const,
     };
     // Hacemos la consulta
     const updated = await nenewdMembership(id, gym_id, membershipData);
