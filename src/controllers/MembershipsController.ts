@@ -112,20 +112,36 @@ export const renewMembership = async (req: Request, res: Response) => {
     if (!plan) {
       return res.status(404).json({ error: "Plan no encontrado" });
     }
-    // Creamos un nuevo end_date
-    const today = new Date();
-    const currentEnd = new Date(membership.fecha_membresias);
+
+    const ahora = new Date();
+    const hoy = new Date(ahora.getFullYear(), ahora.getMonth(), ahora.getDate());
+    
+    const fechaBase = (membership.fecha_membresias as string) || "";
+    // Usamos el split y nos aseguramos de que no sea undefined
+    const partesRaw = fechaBase.split('T')[0]?.split('-') || [];
+
+    if (partesRaw.length !== 3) {
+      throw new Error("El formato de fecha en la membresía es inválido");
+    }
+
+    // Forzamos el tipo a una Tupla de 3 números para que TS sepa que y, m, d existen
+    const [y, m, d] = partesRaw.map(Number) as [number, number, number];
+    
+    const currentEnd = new Date(y, m - 1, d);
 
     let newEndDate: Date;
-    // Validamos si la membresía esta activa
-    if (membership.estado === "activo" && currentEnd > today) {
+    // Comparamos objetos Date (getTime() es opcional pero ayuda a la claridad)
+    if (membership.estado === "activo" && currentEnd.getTime() > hoy.getTime()) {
       newEndDate = new Date(currentEnd);
     } else {
-      newEndDate = new Date(today);
+      newEndDate = new Date(hoy);
     }
-    // Actualizamos la fecha de vencimiento
+
+    // Sumamos la duración
     newEndDate.setDate(newEndDate.getDate() + plan.duration_day);
-    const fecha = newEndDate.toISOString().slice(0, 10);
+    
+    // Formato final YYYY-MM-DD
+    const fecha = `${newEndDate.getFullYear()}-${String(newEndDate.getMonth() + 1).padStart(2, '0')}-${String(newEndDate.getDate()).padStart(2, '0')}`;
     // Registramos pago
     const paymentData: CreatePaymentDTO = {
       gym_id,
