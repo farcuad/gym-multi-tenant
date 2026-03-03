@@ -4,7 +4,7 @@ export interface MembershipBody {
     client_id: number;
     plan_id: number;
     fecha_inicio: string | Date;
-    fecha_membresias: string | Date;
+    fecha_vencimiento: string | Date;
     estado: 'activo' | 'pendiente' | 'suspendido';
 }
 

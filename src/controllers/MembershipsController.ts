@@ -36,7 +36,7 @@ export const createMembership = async (req: Request, res: Response) => {
       client_id: Number(client_id),
       plan_id: Number(plan_id),
       fecha_inicio: fecha_inicio,
-      fecha_membresias: fechaVencimiento,
+      fecha_vencimiento: fechaVencimiento,
       estado: "activo" as "activo" | "pendiente" | "suspendido",
     };
     // Registramos la membresía
@@ -118,7 +118,7 @@ export const renewMembership = async (req: Request, res: Response) => {
 
     let fechaString = "";
     
-    const valorFecha = membership.fecha_membresias;
+    const valorFecha = membership.fecha_vencimiento;
 
     if (valorFecha instanceof Date) {
       const y = valorFecha.getFullYear();
@@ -134,7 +134,7 @@ export const renewMembership = async (req: Request, res: Response) => {
 
     // 2. Validamos que tengamos los 3 componentes
     if (partesRaw.length !== 3 || fechaString === "") {
-      throw new Error(`El formato de fecha es irreconocible. Recibido: ${membership.fecha_membresias}`);
+      throw new Error(`El formato de fecha es irreconocible. Recibido: ${membership.fecha_vencimiento}`);
     }
 
     const [y, m, d] = partesRaw.map(Number) as [number, number, number];
