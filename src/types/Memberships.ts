@@ -3,8 +3,8 @@ export interface MembershipBody {
     gym_id: number;
     client_id: number;
     plan_id: number;
-    fecha_inicio: string;
-    fecha_membresias: string;
+    fecha_inicio: string | Date;
+    fecha_membresias: string | Date;
     estado: 'activo' | 'pendiente' | 'suspendido';
 }
 

@@ -115,18 +115,29 @@ export const renewMembership = async (req: Request, res: Response) => {
 
     const ahora = new Date();
     const hoy = new Date(ahora.getFullYear(), ahora.getMonth(), ahora.getDate());
-    
-    const fechaBase = (membership.fecha_membresias as string) || "";
-    // Usamos el split y nos aseguramos de que no sea undefined
-    const partesRaw = fechaBase.split('T')[0]?.split('-') || [];
 
-    if (partesRaw.length !== 3) {
-      throw new Error("El formato de fecha en la membresía es inválido");
+    let fechaString = "";
+    
+    const valorFecha = membership.fecha_membresias;
+
+    if (valorFecha instanceof Date) {
+      const y = valorFecha.getFullYear();
+      const m = String(valorFecha.getMonth() + 1).padStart(2, '0');
+      const d = String(valorFecha.getDate()).padStart(2, '0');
+      fechaString = `${y}-${m}-${d}`;
+    } else if (typeof valorFecha === 'string') {
+      // Si es string, usamos split
+      fechaString = valorFecha.split('T')[0] ?? "";
     }
 
-    // Forzamos el tipo a una Tupla de 3 números para que TS sepa que y, m, d existen
+    const partesRaw = fechaString.split('-');
+
+    // 2. Validamos que tengamos los 3 componentes
+    if (partesRaw.length !== 3 || fechaString === "") {
+      throw new Error(`El formato de fecha es irreconocible. Recibido: ${membership.fecha_membresias}`);
+    }
+
     const [y, m, d] = partesRaw.map(Number) as [number, number, number];
-    
     const currentEnd = new Date(y, m - 1, d);
 
     let newEndDate: Date;
