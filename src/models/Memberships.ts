@@ -47,34 +47,33 @@ export const getMembershipById = async (id: number, gym_id: number): Promise<Mem
     return result.rows[0] || null;
 }
 // Funcion para actualizar la membresía
-// Funcion para actualizar la membresía
 export const nenewdMembership = async (id: number, gym_id: number, data: UpdateMembershipDTO): Promise<MembershipBody | null> => { 
     
-    // 1. IMPORTANTE: Usamos .partial().parse() para que Zod no pida los campos faltantes
-    const validatedData = MemberSchema.partial().parse(data);
+    // 1. Creamos una versión "relajada" del esquema donde TODO es opcional
+    const UpdateSchema = MemberSchema.partial();
 
-    // 2. Mapeamos la fecha de vencimiento al nombre real de la columna
-    // Usamos un objeto intermedio para manipular las llaves sin perder el tipo
+    // 2. Validamos. Ahora Zod NO se quejará si no viene client_id o gym_id
+    const validatedData = UpdateSchema.parse(data);
+
+    // 3. Convertimos a objeto plano para construir la consulta SQL
     const updatePayload: Record<string, any> = { ...validatedData };
 
+    // Manejo de la fecha (si viene como fecha_vencimiento la pasamos a la columna real)
     if (updatePayload.fecha_vencimiento && !updatePayload.fecha_membresias) {
         updatePayload.fecha_membresias = updatePayload.fecha_vencimiento;
         delete updatePayload.fecha_vencimiento;
     }
 
-    // 3. Extraemos las llaves y valores para el SQL dinámico
     const fields = Object.keys(updatePayload);
     const values = Object.values(updatePayload);
 
     if (fields.length === 0) return null;
 
-    // 4. Construimos el SET clause: "campo1 = $1, campo2 = $2"
     const setClause = fields.map((field, index) => `${field} = $${index + 1}`).join(", ");
 
-    // 5. Los últimos índices son para el WHERE (id y gym_id)
+    // 4. Usamos el ID y GYM_ID que ya tenemos en los argumentos de la función
     const sql = `UPDATE memberships SET ${setClause} WHERE id = $${fields.length + 1} AND gym_id = $${fields.length + 2} RETURNING *`;
     
-    // Ejecutamos pasando los valores del objeto + el id + el gym_id
     const result = await query(sql, [...values, id, gym_id]);
     
     return result.rows[0] || null;
