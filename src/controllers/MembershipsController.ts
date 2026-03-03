@@ -21,11 +21,16 @@ export const createMembership = async (req: Request, res: Response) => {
     if (!planSeleccionado) {
       return res.status(404).json({ error: "El plan seleccionado no existe" });
     }
-    const inicio = new Date(fecha_inicio);
+    const [year, month, day] = fecha_inicio.split("-").map(Number);
+
+    const inicio = new Date(year, month - 1, day);
+
     if (isNaN(inicio.getTime())) throw new Error("Fecha de inicio inválida");
+
     const fin = new Date(inicio);
     fin.setDate(inicio.getDate() + planSeleccionado.duration_day);
-    const fechaVencimiento = fin.toISOString().split("T")[0]!;
+
+    const fechaVencimiento = `${fin.getFullYear()}-${String(fin.getMonth() + 1).padStart(2, '0')}-${String(fin.getDate()).padStart(2, '0')}`;
     const membershipData = {
       gym_id: Number(gym_id_token),
       client_id: Number(client_id),
