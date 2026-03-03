@@ -169,15 +169,13 @@ export const renewMembership = async (req: Request, res: Response) => {
       status: "Confirmado",
     };
 
+    const hoyFormateado = `${hoy.getFullYear()}-${String(hoy.getMonth() + 1).padStart(2, '0')}-${String(hoy.getDate()).padStart(2, '0')}`;
     const payment = await registerPayment(paymentData);
     // Actualizamos la membresía
     const membershipData = {
       plan_id: plan.id,
+      fecha_inicio: hoyFormateado,
       fecha_membresias: fecha,
-      // Si no se extendió (se reactivó desde hoy), actualizamos fecha_inicio
-      ...(membership.estado !== "activo" || currentEnd.getTime() <= hoy.getTime() 
-          ? { fecha_inicio: `${hoy.getFullYear()}-${String(hoy.getMonth() + 1).padStart(2, '0')}-${String(hoy.getDate()).padStart(2, '0')}` } 
-          : {}),
       estado: "activo" as const,
     };
     // Hacemos la consulta
