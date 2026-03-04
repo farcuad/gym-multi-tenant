@@ -1,18 +1,12 @@
 // Este controlador es para el dueño del sistema, osea el admin
 import type { Request, Response } from "express";
-import {
-  getAllGymsData,
-  updatePlanGyms,
-  getHistoryGyms,
-} from "../models/AdminSuperior.js";
+import { getAllGymsData, updatePlanGyms, getHistoryGyms, } from "../models/AdminSuperior.js";
 
 // Funcion para obtener los datos de los gimnasios
 export const getDashboardData = async (req: Request, res: Response) => {
   try {
     const gyms = await getAllGymsData();
-    return res
-      .status(200)
-      .json({ message: "Datos obtenidos correctamente", gyms });
+    return res.status(200).json({ message: "Datos obtenidos correctamente", gyms });
   } catch (error) {
     return res.status(500).json({ error: "Error interno del servidor" });
   }
@@ -23,9 +17,7 @@ export const getGymHistory = async (req: Request, res: Response) => {
     const { id } = req.params;
     const gymId = Number(id);
     const history = await getHistoryGyms(gymId);
-    return res
-      .status(200)
-      .json({ message: "Historial obtenido correctamente", history });
+    return res.status(200).json({ message: "Historial obtenido correctamente", history });
   } catch (error) {
     return res.status(500).json({ error: "Error interno del servidor" });
   }
@@ -47,9 +39,7 @@ export const updatePlan = async (req: Request, res: Response) => {
     }
     // Hacemos la consulta pasandole los parametros
     await updatePlanGyms({ gymId: gymId, planType, monts, price });
-    return res
-      .status(200)
-      .json({ message: `Plan ${planType} actualizado correctamente` });
+    return res.status(200).json({ message: `Plan ${planType} actualizado correctamente` });
   } catch (error) {
     return res.status(500).json({
       error: "Error interno",

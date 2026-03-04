@@ -1,10 +1,5 @@
 import type { Request, Response } from "express";
-import {
-  registerPlan,
-  getPlansByGymId,
-  updatePlan,
-  deletePlan,
-} from "../models/Plans.js";
+import { registerPlan, getPlansByGymId, updatePlan, deletePlan, } from "../models/Plans.js";
 
 // Funcion para crear un nuevo plan
 export const createPlan = async (req: Request, res: Response) => {
@@ -47,14 +42,10 @@ export const modifyPlan = async (req: Request, res: Response) => {
     const updatedPlan = await updatePlan(id, Number(gym_id), data);
     // Si algo fallo, mandamos mensaje
     if (!updatedPlan) {
-      return res
-        .status(404)
-        .json({ error: "Plan no encontrado o sin datos para actualizar" });
+      return res.status(404).json({ error: "Plan no encontrado o sin datos para actualizar" });
     }
     // Devolvemos el plan actualizado
-    res
-      .status(200)
-      .json({ message: "Plan actualizado correctamente", plan: updatedPlan });
+    res.status(200).json({ message: "Plan actualizado correctamente", plan: updatedPlan });
   } catch (error) {
     res.status(400).json({ error: (error as Error).message });
   }

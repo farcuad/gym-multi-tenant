@@ -6,10 +6,7 @@ import { registerClient, getClientsByGymId } from "../models/Clients.js";
 import { registerPlan, getPlansByGymId } from "../models/Plans.js";
 import { getMembershipByGymId } from "../models/Memberships.js";
 import { getPayment } from "../models/Payments.js";
-import {
-  getMetrticsPayments,
-  getMonthlyNewClients,
-} from "../models/Metricas.js";
+import { getMetrticsPayments, getMonthlyNewClients, } from "../models/Metricas.js";
 export const analizarGanancias = async (req: Request, res: Response) => {
   try {
     const gymId = req.user.gym_id;

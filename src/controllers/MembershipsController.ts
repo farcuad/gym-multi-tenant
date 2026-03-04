@@ -1,14 +1,9 @@
 import type { Request, Response } from "express";
-import {
-  registerMembership,
-  getMembershipByGymId,
-  nenewdMembership,
-  deleteMembership,
-  getMembershipById,
-} from "../models/Memberships.js";
+import { registerMembership, getMembershipByGymId,nenewdMembership,deleteMembership, getMembershipById, } from "../models/Memberships.js";
 import { getPlansByGymId } from "../models/Plans.js";
 import { registerPayment } from "../models/Payments.js";
 import type { CreatePaymentDTO } from "../types/Payments.js";
+
 // función para crear una nueva membresía
 export const createMembership = async (req: Request, res: Response) => {
   try {
@@ -29,7 +24,7 @@ export const createMembership = async (req: Request, res: Response) => {
 
     const fin = new Date(inicio);
     fin.setDate(inicio.getDate() + planSeleccionado.duration_day);
-
+    /// Formateamos la fecha de vencimiento a YYYY-MM-DD
     const fechaVencimiento = `${fin.getFullYear()}-${String(fin.getMonth() + 1).padStart(2, '0')}-${String(fin.getDate()).padStart(2, '0')}`;
     const membershipData = {
       gym_id: Number(gym_id_token),
@@ -114,12 +109,13 @@ export const renewMembership = async (req: Request, res: Response) => {
     }
 
     const ahora = new Date();
+    // Const para comparar solo la fecha sin la hora (para evitar problemas de horas al renovar)
     const hoy = new Date(ahora.getFullYear(), ahora.getMonth(), ahora.getDate());
 
     let fechaString = "";
     
     const valorFecha = membership.fecha_vencimiento;
-
+    // Validamos el tipo de fecha (puede ser string o Date dependiendo de cómo se haya obtenido de la base de datos) y formateamos a YYYY-MM-DD
     if (valorFecha instanceof Date) {
       const y = valorFecha.getFullYear();
       const m = String(valorFecha.getMonth() + 1).padStart(2, '0');
@@ -168,7 +164,7 @@ export const renewMembership = async (req: Request, res: Response) => {
       reference: payment_info.reference,
       status: "Confirmado",
     };
-
+    // Formateamos la fecha a YYYY-MM-DD
     const hoyFormateado = `${hoy.getFullYear()}-${String(hoy.getMonth() + 1).padStart(2, '0')}-${String(hoy.getDate()).padStart(2, '0')}`;
     const payment = await registerPayment(paymentData);
     // Actualizamos la membresía
@@ -200,9 +196,7 @@ export const deleteMemberships = async (req: Request, res: Response) => {
     const gym_id = Number(req.user.gym_id);
     // Eliminamos la membresía
     const deleted = await deleteMembership(id, gym_id);
-    res
-      .status(200)
-      .json({ message: "Membresía eliminada correctamente", deleted });
+    res.status(200).json({ message: "Membresía eliminada correctamente", deleted });
   } catch (error: any) {
     // Manejamos error de postgresql
     if (error.code === "23503") {
@@ -212,8 +206,6 @@ export const deleteMemberships = async (req: Request, res: Response) => {
       });
     }
     // Si algo falla, mostramos error por defecto
-    return res
-      .status(500)
-      .json({ message: "Ocurrio un error al eliminar la membresia" });
+    return res.status(500).json({ message: "Ocurrio un error al eliminar la membresia" });
   }
 };
