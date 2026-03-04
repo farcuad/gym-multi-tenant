@@ -41,6 +41,7 @@ import {
   getMetricsPayments,
   getMetricsNewClients,
 } from "../controllers/MetricasController.js";
+import { getRate } from "../controllers/BcvController.js";
 const router = Router();
 // Rutas publicas
 router.post("/register", registerAdmin);
@@ -48,7 +49,7 @@ router.post("/login", loginAdmin);
 // Rutas para recuperación de contraseña
 router.post("/admin/forgot-password", forgotPassword);
 router.post("/admin/password", resetPassword);
-
+router.get("/bcv-rate", getRate);
 // Middleware para proteger las rutas siguientes
 router.use(authToken, loadSubscription);
 // Rutas para el admin superior
