@@ -10,12 +10,14 @@ export const MemberSchema = z.object({
   fecha_membresias: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
   fecha_vencimiento: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
   estado: z.enum(["activo", "pendiente", "suspendido"]).default("activo"),
+  plan_name_purchase: z.string(),
+  price_purchase: z.number(),
 });
 //Funcion para registrar una nueva membresía
 export const registerMembership = async ( data: CreateMembershipDTO): Promise<MembershipBody> => {
   const validatedData = MemberSchema.parse(data);
   const sql =
-    "INSERT INTO memberships (gym_id, client_id, plan_id, fecha_inicio, fecha_membresias, estado) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *";
+    "INSERT INTO memberships (gym_id, client_id, plan_id, fecha_inicio, fecha_membresias, estado, plan_name_purchase, price_purchase) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *";
   const values = [
     validatedData.gym_id,
     validatedData.client_id,
@@ -23,6 +25,8 @@ export const registerMembership = async ( data: CreateMembershipDTO): Promise<Me
     validatedData.fecha_inicio,
     validatedData.fecha_membresias || (validatedData as any).fecha_vencimiento,
     validatedData.estado,
+    validatedData.plan_name_purchase,
+    validatedData.price_purchase,
   ];
   const result = await query(sql, values);
   return result.rows[0];
@@ -30,7 +34,7 @@ export const registerMembership = async ( data: CreateMembershipDTO): Promise<Me
 
 // Funcion para obtener la membresía por gym_id
 export const getMembershipByGymId = async (gym_id: number): Promise<MembershipBody[]> => {
-  const sql = ` SELECT  m.id, m.client_id, m.plan_id, c.name as client_name, c.phone as client_phone, p.name as plan_name,  p.price as plan_price,m.fecha_inicio,
+  const sql = ` SELECT  m.id, m.client_id, m.plan_id, c.name as client_name, c.phone as client_phone, m.plan_name_purchase as plan_name,  m.price_purchase as plan_price,m.fecha_inicio,
       m.fecha_membresias as fecha_vencimiento, CASE WHEN m.fecha_membresias <= (CURRENT_DATE AT TIME ZONE 'UTC' AT TIME ZONE 'America/Caracas')::date THEN 'vencido' ELSE 'activo'
       END AS estado FROM memberships m JOIN clients c ON m.client_id = c.id  JOIN plans p ON m.plan_id = p.id 
        WHERE m.gym_id = $1  ORDER BY m.fecha_membresias ASC`;
@@ -40,7 +44,7 @@ export const getMembershipByGymId = async (gym_id: number): Promise<MembershipBo
 
 // Funcion para obtener la membresía por id
 export const getMembershipById = async (id: number, gym_id: number): Promise<MembershipBody | null> => {
-    const sql = `SELECT m.id, m.gym_id, m.client_id, m.plan_id, c.name as client_name, c.phone as client_phone, p.name as plan_name,  p.price as plan_price,m.fecha_inicio,
+    const sql = `SELECT m.id, m.gym_id, m.client_id, m.plan_id, c.name as client_name, c.phone as client_phone, m.plan_name_purchase as plan_name,  m.price_purchase as plan_price,m.fecha_inicio,
       m.fecha_membresias as fecha_vencimiento, CASE WHEN m.fecha_membresias <= CURRENT_DATE THEN 'vencido' ELSE 'activo'
       END AS estado FROM memberships m JOIN clients c ON m.client_id = c.id  JOIN plans p ON m.plan_id = p.id WHERE m.id = $1 AND m.gym_id = $2`;
     const result = await query(sql, [id, gym_id]);

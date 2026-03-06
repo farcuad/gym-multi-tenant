@@ -5,6 +5,8 @@ export interface MembershipBody {
     plan_id: number;
     fecha_inicio: string | Date;
     fecha_vencimiento: string | Date;
+    plan_name_purchase: string;
+    price_purchase: number;
     estado: 'activo' | 'pendiente' | 'suspendido';
 }
 

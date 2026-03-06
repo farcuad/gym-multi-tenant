@@ -33,6 +33,8 @@ export const createMembership = async (req: Request, res: Response) => {
       fecha_inicio: fecha_inicio,
       fecha_vencimiento: fechaVencimiento,
       estado: "activo" as "activo" | "pendiente" | "suspendido",
+      plan_name_purchase: planSeleccionado.name,
+      price_purchase: planSeleccionado.price,
     };
     // Registramos la membresía
     const membership = await registerMembership(membershipData);
@@ -173,6 +175,8 @@ export const renewMembership = async (req: Request, res: Response) => {
       fecha_inicio: hoyFormateado,
       fecha_membresias: fecha,
       estado: "activo" as const,
+      plan_name_purchase: plan.name,
+      price_purchase: Number(plan.price),
     };
     // Hacemos la consulta
     const updated = await nenewdMembership(id, gym_id, membershipData);
