@@ -11,7 +11,7 @@ export const MemberSchema = z.object({
   fecha_vencimiento: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
   estado: z.enum(["activo", "pendiente", "suspendido"]).default("activo"),
   plan_name_purchase: z.string(),
-  price_purchase: z.number(),
+  price_purchase: z.coerce.number(),
 });
 //Funcion para registrar una nueva membresía
 export const registerMembership = async ( data: CreateMembershipDTO): Promise<MembershipBody> => {
