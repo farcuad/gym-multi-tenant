@@ -8,18 +8,25 @@ export const loadSubscription = async ( req: Request, res: Response, next: NextF
     return next();
   }
   const result = await query(
-    `SELECT plan_type, status, end_date 
+    `SELECT *, (end_date < (CURRENT_DATE AT TIME ZONE 'UTC' AT TIME ZONE 'America/Caracas')::date) as is_expired
      FROM gym_subscriptions 
-     WHERE gym_id = $1 
+     WHERE gym_id = $1 AND status IN ('active', 'trialing')
      ORDER BY end_date DESC LIMIT 1`,
     [req.user.gym_id],
   );
 
-  if (result.rows.length === 0) {
-    return res.status(404).json({ message: "No se encontró suscripción" });
+  const subscription = result.rows[0];
+
+  if (!subscription) {
+    return res.status(403).json({ message: "Subscripcion no encontrada" });
   }
 
-  // Devolvemos la data. El Frontend decidirá qué hacer con la end_date
-  res.status(200).json(result.rows[0]);
+  if (new Date(subscription.end_date) < new Date()) {
+    return res.status(403).json({
+      code: "SUBSCRIPTION_EXPIRED",
+      message: "Tu periodo de prueba o suscripción ha vencido.",
+    });
+  }
+  req.subscription = subscription;
   next();
 };

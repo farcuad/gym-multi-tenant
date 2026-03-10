@@ -10,7 +10,7 @@ import { authToken } from "../middleware/authMiddleware.js";
 import { isAdmin } from "../middleware/isAdmin.js";
 import { requirePlan } from "../middleware/requirePlan.js";
 import { loadSubscription } from "../middleware/loadSubcription.js";
-import { getSubscriptions } from "../controllers/SubsCriptionController.js";
+import { getSubscription } from "../controllers/SubsCriptionController.js";
 import { getMetricsPayments,getMetricsNewClients, } from "../controllers/MetricasController.js";
 import { getRate } from "../controllers/BcvController.js";
 const router = Router();
@@ -28,7 +28,7 @@ router.get("/dashboard", isAdmin, getDashboardData);
 router.put("/plans-admin/:id", isAdmin, updatePlan);
 router.get("/plans-admin/:id/history", isAdmin, getGymHistory);
 
-router.get("/subscriptions", getSubscriptions);
+router.get("/subscriptions", getSubscription);
 
 router.use(loadSubscription);
 // Rutas para los clientes
