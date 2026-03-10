@@ -22,13 +22,15 @@ router.post("/admin/forgot-password", forgotPassword);
 router.post("/admin/password", resetPassword);
 router.get("/bcv-rate", getRate);
 // Middleware para proteger las rutas siguientes
-router.use(authToken, loadSubscription);
+router.use(authToken);
 // Rutas para el admin superior
 router.get("/dashboard", isAdmin, getDashboardData);
 router.put("/plans-admin/:id", isAdmin, updatePlan);
 router.get("/plans-admin/:id/history", isAdmin, getGymHistory);
 
 router.get("/subscriptions", getSubscriptions);
+
+router.use(loadSubscription);
 // Rutas para los clientes
 router.get("/clients/alert", alertClient);
 router.post("/clients", createClient);

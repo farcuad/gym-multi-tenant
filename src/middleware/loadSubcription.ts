@@ -1,10 +1,6 @@
 import type { Request, Response, NextFunction } from "express";
 import { query } from "../connect/connect.js";
-export const loadSubscription = async (
-  req: Request,
-  res: Response,
-  next: NextFunction,
-) => {
+export const loadSubscription = async ( req: Request, res: Response, next: NextFunction,) => {
   if (!req.user) {
     return res.status(401).json({ message: "No autorizado" });
   }
@@ -12,23 +8,18 @@ export const loadSubscription = async (
     return next();
   }
   const result = await query(
-    `SELECT * FROM gym_subscriptions 
-   WHERE gym_id = $1 AND status = 'active' 
-   ORDER BY end_date DESC LIMIT 1`,
+    `SELECT plan_type, status, end_date 
+     FROM gym_subscriptions 
+     WHERE gym_id = $1 
+     ORDER BY end_date DESC LIMIT 1`,
     [req.user.gym_id],
   );
 
-  const subscription = result.rows[0];
-
-  if (!subscription) {
-    return res.status(403).json({ message: "Subscripcion no encontrada" });
+  if (result.rows.length === 0) {
+    return res.status(404).json({ message: "No se encontró suscripción" });
   }
 
-  if (new Date(subscription.end_date) < new Date()) {
-    return res.status(403).json({
-      code: "SUBSCRIPTION_EXPIRED",
-    });
-  }
-  req.subscription = subscription;
+  // Devolvemos la data. El Frontend decidirá qué hacer con la end_date
+  res.status(200).json(result.rows[0]);
   next();
 };
