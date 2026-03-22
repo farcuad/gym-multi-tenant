@@ -10,6 +10,8 @@ const planBodySchema = z.object({
     price: z.number().nonnegative(),
 });
 
+const updateBodyShema = planBodySchema.partial();
+
 // Esquemas específicos para creación y actualización
 const registerPLanSchema = planBodySchema;
 const updatePlanSchema = planBodySchema;
@@ -41,7 +43,7 @@ export const getPlansByGymId = async (gymId: number): Promise<PlanBody[]>=> {
 // Funcion para actualizar un plan
 export const updatePlan = async (id: number, gym_id: number, data: UpdatePlanDTO): Promise<PlanBody | null> => {
     // Validar los datos de entrada
-    const validatedData = updatePlanSchema.parse(data);
+    const validatedData = updateBodyShema.parse(data);
     // Construir la consulta SQL dinámicamente
     const fields = Object.keys(validatedData);
     const values = Object.values(validatedData);
