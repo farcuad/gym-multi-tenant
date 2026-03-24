@@ -62,7 +62,7 @@ export const sendMembershipNotification = async (data: NotificationData) => {
                       `Cualquier duda, estamos a tu disposición. ¡A darle con todo! 💪🔥`;
         }
 
-        await axios.post('http://localhost:3000/api/webhook/send-membership', {
+        await axios.post('http://localhost:3000/webhook/send-membership', {
             phone: num,
             message: mensaje
         });

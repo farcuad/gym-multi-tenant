@@ -21,7 +21,12 @@ app.post('/webhook/send-membership', async (req, res) => {
 
 app.listen(PORT, () => {
     console.log(`Servidor corriendo en el puerto http://localhost:${PORT}`);
-    initWhatsApp();
+    if (process.env.name === 'FitLog') {
+        console.log("🤖 Iniciando WhatsApp Client en proceso FitLog...");
+        initWhatsApp();
+    } else {
+        console.log("🚀 Proceso API iniciado (Sin WhatsApp local)");
+    }
     startCronJobs();
 });
 
