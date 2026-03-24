@@ -1,6 +1,5 @@
-import { whatsappClient } from '../config/Whatsapp.js';
 import { query } from '../connect/connect.js';
-
+import axios from 'axios';
 interface NotificationData {
     client_id: number;
     gym_id: number;
@@ -63,7 +62,10 @@ export const sendMembershipNotification = async (data: NotificationData) => {
                       `Cualquier duda, estamos a tu disposición. ¡A darle con todo! 💪🔥`;
         }
 
-        await whatsappClient.sendMessage(`${num}@c.us`, mensaje);
+        await axios.post('http://localhost:3000/api/webhook/send-membership', {
+            phone: num,
+            message: mensaje
+        });
         console.log(`✅ Notificación de ${data.is_renewal ? 'RENOVACIÓN' : 'BIENVENIDA'} enviada a ${name}`);
 
     } catch (error) {
