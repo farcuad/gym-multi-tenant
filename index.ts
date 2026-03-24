@@ -6,10 +6,13 @@ import { startCronJobs } from "./src/service/cronService.js";
 
 dotenv.config();
 
-const PORT = process.env.PORT;
+const PORT = process.env.name === 'FitLog' ? 3000 : 4000;
 
 app.post('/webhook/send-membership', async (req, res) => {
     const { phone, message } = req.body;
+    if (process.env.name !== 'FitLog') {
+        return res.status(404).json({ error: "Este proceso no gestiona WhatsApp" });
+    }
     try {
         await whatsappClient.sendMessage(`${phone}@c.us`, message);
         console.log(`📩 Mensaje procesado para ${phone}`);
