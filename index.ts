@@ -12,6 +12,7 @@ app.post('/webhook/send-membership', async (req, res) => {
     const { phone, message } = req.body;
     try {
         await whatsappClient.sendMessage(`${phone}@c.us`, message);
+        console.log(`📩 Mensaje procesado para ${phone}`);
         res.status(200).json({ success: true });
     } catch (error) {
         console.error("Error al enviar desde el bot:", error);
