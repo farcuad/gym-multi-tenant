@@ -13,7 +13,9 @@ import { loadSubscription } from "../middleware/loadSubcription.js";
 import { getSubscription } from "../controllers/SubsCriptionController.js";
 import { getMetricsPayments,getMetricsNewClients, } from "../controllers/MetricasController.js";
 import { getRate } from "../controllers/BcvController.js";
+
 const router = Router();
+
 // Rutas publicas
 router.post("/register", registerAdmin);
 router.post("/login", loginAdmin);

@@ -1,5 +1,7 @@
 import app from "./src/app.js";
 import dotenv from "dotenv";
+import { initWhatsApp } from "./src/config/Whatsapp.js";
+import { startCronJobs } from "./src/service/cronService.js";
 
 
 dotenv.config();
@@ -7,6 +9,8 @@ dotenv.config();
 const PORT = process.env.PORT;
 app.listen(PORT, () => {
     console.log(`Servidor corriendo en el puerto http://localhost:${PORT}`);
+    initWhatsApp();
+    startCronJobs();
 });
 
 // Código para obtener las versiones de geminis disponibles

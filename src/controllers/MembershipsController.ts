@@ -3,7 +3,8 @@ import { registerMembership, getMembershipByGymId,nenewdMembership,deleteMembers
 import { getPlansByGymId } from "../models/Plans.js";
 import { registerPayment } from "../models/Payments.js";
 import type { CreatePaymentDTO } from "../types/Payments.js";
-
+import { sendMembershipNotification } from "../service/welcomeService.js";
+import { getSubscriptions } from "../models/Subscriptions.js";
 // función para crear una nueva membresía
 export const createMembership = async (req: Request, res: Response) => {
   try {
@@ -54,6 +55,22 @@ export const createMembership = async (req: Request, res: Response) => {
     };
 
     const payment = await registerPayment(paymentData);
+    // Enviamos notificación de bienvenida por WhatsApp
+    const subscription = await getSubscriptions(Number(gym_id_token));
+
+    const activeSub = subscription.find(sub => sub.status === "active" && new Date(sub.end_date) >= new Date());
+    if(activeSub?.plan_type === "Premium") {
+      sendMembershipNotification({
+      client_id: Number(client_id),
+      gym_id: Number(gym_id_token),
+      plan_name: planSeleccionado.name,
+      price: planSeleccionado.price,
+      fecha_inicio: fecha_inicio,
+      fecha_vencimiento: fechaVencimiento,
+      is_renewal: false
+    });
+    }
+    
     res.status(201).json({
       message: "Membresía y pago registrados correctamente",
       membership,
@@ -102,9 +119,7 @@ export const renewMembership = async (req: Request, res: Response) => {
     // Obtenemos el plan
     const plans = await getPlansByGymId(gym_id);
     // Buscamos el plan
-    const plan = plans.find(
-      (p) => p.id === Number(plan_id ?? membership.plan_id),
-    );
+    const plan = plans.find((p) => p.id === Number(plan_id ?? membership.plan_id));
     // Validamos
     if (!plan) {
       return res.status(404).json({ error: "Plan no encontrado" });
@@ -181,6 +196,22 @@ export const renewMembership = async (req: Request, res: Response) => {
     // Hacemos la consulta
     const updated = await nenewdMembership(id, gym_id, membershipData);
 
+    const subscription = await getSubscriptions(Number(gym_id));
+
+    const activeSub = subscription.find(sub => sub.status === "active" && new Date(sub.end_date) >= new Date());
+    // Enviamos notifiacion de renovacion a su whatsapp
+    if (activeSub?.plan_type === "Premium") {
+      sendMembershipNotification({
+        client_id: membership.client_id, // Usamos el ID que ya teníamos de la membresía anterior
+        gym_id: gym_id,
+        plan_name: plan.name,
+        price: plan.price,
+        fecha_inicio: hoyFormateado,
+        fecha_vencimiento: fecha,
+        is_renewal: true
+    });
+    }
+    
     res.status(200).json({
       message: "Membresía renovada correctamente",
       membership: updated,
