@@ -1,11 +1,15 @@
 import pkg from 'whatsapp-web.js';
 const { Client, LocalAuth } = pkg;
 import qrcode from 'qrcode-terminal';
+import dotenv from 'dotenv';
+
+dotenv.config();
 
 export const whatsappClient = new Client({
     authStrategy: new LocalAuth(),
     puppeteer: {
-        handleSIGINT: false,
+        executablePath: process.env.CHROME_PATH || undefined,
+        handleSIGINT: true,
         args: [
             '--no-sandbox',
             '--disable-setuid-sandbox',
@@ -16,11 +20,11 @@ export const whatsappClient = new Client({
             '--single-process',
             '--disable-gpu'
         ],
-    },
-    webVersionCache: {
-        type: 'remote',
-        remotePath: 'https://raw.githubusercontent.com/wppconnect-team/wa-version/main/html/2.3000.1018917812-alpha.html',
     }
+    // webVersionCache: {
+    //     type: 'remote',
+    //     remotePath: 'https://raw.githubusercontent.com/wppconnect-team/wa-version/main/html/2.3000.1018917812-alpha.html',
+    // }
 });
 
 export const initWhatsApp = () => {
