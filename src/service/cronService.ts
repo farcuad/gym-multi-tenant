@@ -71,9 +71,9 @@ export const ejecutarNotifiaciones = async () => {
 
                 let mensaje = "";
                  if (cliente.dias_para_vencer === 0) {
-                     mensaje = `⏰ *¡VENCE HOY!* ⏰\n\nHola *${cliente.cliente_nombre}*, tu membresía en *${cliente.gym_nombre}* vence hoy (*${fechaLimpia}*). ¡Te esperamos para renovar y seguir con tus metas! 💪🔥`;
+                     mensaje = `⏰ *¡VENCE HOY!* ⏰\n\nHola *${cliente.cliente_nombre}*, tu membresía en *${cliente.gym_nombre}* vence hoy *${fechaLimpia}*. ¡Te esperamos para renovar y seguir con tus metas! 💪🔥`;
                     } else {
-                    mensaje = `🔔 *RECORDATORIO* 🔔\n\nHola *${cliente.cliente_nombre}*, te recordamos que tu membresía en *${cliente.gym_nombre}* vencerá en *3 días* (*${fechaLimpia}*). ¡Anticípate y mantente activo! 🏋️‍♂️✨`;
+                    mensaje = `🔔 *RECORDATORIO* 🔔\n\nHola *${cliente.cliente_nombre}*, te recordamos que tu membresía en *${cliente.gym_nombre}* vencerá en *3 días* *${fechaLimpia}*. ¡Anticípate y mantente activo! 🏋️‍♂️✨`;
                 }
 
             try {
