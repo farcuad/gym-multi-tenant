@@ -87,8 +87,21 @@ export const deleteClientById = async ( id: number, gym_id: number, ): Promise<b
 // funcion para alerta de cliente vencido
 export const alertClientExpired = async ( gymId: number, ): Promise<ClientBody[]> => {
   const sql = ` 
-   SELECT c.name, c.phone, c.cedula, m.fecha_membresias AS fecha_vencimiento, p.name AS plan_name FROM clients c INNER JOIN memberships m ON c.id = m.client_id INNER JOIN plans p ON m.plan_id = p.id WHERE c.gym_id = $1 AND c.activo = true AND m.estado = 'activo' AND m.fecha_membresias = (CURRENT_DATE AT TIME ZONE 'UTC' AT TIME ZONE 'America/Caracas')::date ORDER BY m.fecha_membresias DESC, c.name ASC
-   LIMIT 10
+   SELECT 
+      c.name, 
+      c.phone, 
+      c.cedula, 
+      m.fecha_membresias AS fecha_vencimiento, 
+      p.name AS plan_name 
+    FROM clients c 
+    INNER JOIN memberships m ON c.id = m.client_id 
+    INNER JOIN plans p ON m.plan_id = p.id 
+    WHERE c.gym_id = $1 
+      AND c.activo = true 
+      AND m.estado = 'activo' 
+      AND (m.fecha_membresias AT TIME ZONE 'UTC' AT TIME ZONE 'America/Caracas')::date = (CURRENT_TIMESTAMP AT TIME ZONE 'America/Caracas')::date
+    ORDER BY m.fecha_membresias DESC, c.name ASC
+    LIMIT 10
     `;
   const result = await query(sql, [gymId]);
   return result.rows;
