@@ -46,3 +46,14 @@ app.listen(PORT, () => {
 // }
 
 // listModels();
+
+import fs from "fs";
+import path from "path";
+
+const tempFolder = "./temp_audio";
+
+// Crear la carpeta si no existe al arrancar el servidor
+if (!fs.existsSync(tempFolder)) {
+    fs.mkdirSync(tempFolder);
+    console.log("📁 Carpeta 'temp_audio' creada automáticamente.");
+}
