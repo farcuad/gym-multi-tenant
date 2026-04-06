@@ -58,7 +58,13 @@ export const createMembership = async (req: Request, res: Response) => {
     // Enviamos notificación de bienvenida por WhatsApp
     const subscription = await getSubscriptions(Number(gym_id_token));
 
-    const activeSub = subscription.find(sub => sub.status === "active" && new Date(sub.end_date) >= new Date());
+    const ahoraCaracas = new Date().toLocaleString("en-CA", { timeZone: "America/Caracas" }).split(',')[0];
+    if(!ahoraCaracas){
+      return res.status(500).json({ error: "Error al obtener la fecha de caracas" });
+    }
+    const activeSub = subscription.find(sub => 
+      sub.status === "active" && sub.end_date >= ahoraCaracas
+    );
     if(activeSub?.plan_type === "Premium") {
       sendMembershipNotification({
       client_id: Number(client_id),
@@ -125,9 +131,20 @@ export const renewMembership = async (req: Request, res: Response) => {
       return res.status(404).json({ error: "Plan no encontrado" });
     }
 
-    const ahora = new Date();
-    // Const para comparar solo la fecha sin la hora (para evitar problemas de horas al renovar)
-    const hoy = new Date(ahora.getFullYear(), ahora.getMonth(), ahora.getDate());
+    const fechaCaracas = new Date().toLocaleString("en-CA", {
+      timeZone: "America/Caracas",
+      hour12: false,
+    }).split(',')[0]; // Resultado: "2026-04-05"
+
+    if (!fechaCaracas) {
+      return res.status(500).json({ error: "Error al obtener la fecha de caracas" });
+    }
+    // 2. CREAR EL OBJETO "HOY" BASADO EN ESA FECHA
+    const [year, month, day] = fechaCaracas.split('-').map(Number);
+    if (!year || !month) {
+      return res.status(500).json({ error: "Error al parsear la fecha de caracas" });
+    }
+    const hoy = new Date(year, month - 1, day);
 
     let fechaString = "";
     

@@ -1,35 +1,10 @@
 import { Router } from "express";
-import {
-  loginAdmin,
-  registerAdmin,
-  resetPassword,
-  forgotPassword,
+import { loginAdmin, registerAdmin, resetPassword, forgotPassword,
 } from "../controllers/AuthController.js";
-import {
-  createClient,
-  fetchClientsByGymId,
-  fetchClientById,
-  updateClient,
-  deleteClient,
-  alertClient,
-} from "../controllers/ClientController.js";
-import {
-  createMembership,
-  getMembership,
-  renewMembership,
-  deleteMemberships,
-} from "../controllers/MembershipsController.js";
-import {
-  createPlan,
-  fetchPlansByGymId,
-  modifyPlan,
-  removePlan,
-} from "../controllers/PlansController.js";
-import {
-  getDashboardData,
-  updatePlan,
-  getGymHistory,
-} from "../controllers/AdminSuperiorController.js";
+import { createClient, fetchClientsByGymId, fetchClientById, updateClient, deleteClient,alertClient, } from "../controllers/ClientController.js";
+import { createMembership, getMembership, renewMembership, deleteMemberships,} from "../controllers/MembershipsController.js";
+import { createPlan, fetchPlansByGymId, modifyPlan, removePlan, } from "../controllers/PlansController.js";
+import { getDashboardData, updatePlan, getGymHistory, } from "../controllers/AdminSuperiorController.js";
 import { getPayments } from "../controllers/PaymentsController.js";
 import { analizarGanancias } from "../controllers/AiController.js";
 import { authToken } from "../middleware/authMiddleware.js";
@@ -37,10 +12,7 @@ import { isAdmin } from "../middleware/isAdmin.js";
 import { requirePlan } from "../middleware/requirePlan.js";
 import { loadSubscription } from "../middleware/loadSubcription.js";
 import { getSubscription } from "../controllers/SubsCriptionController.js";
-import {
-  getMetricsPayments,
-  getMetricsNewClients,
-} from "../controllers/MetricasController.js";
+import { getMetricsPayments, getMetricsNewClients, } from "../controllers/MetricasController.js";
 import { getRate } from "../controllers/BcvController.js";
 import { transcribeAudioController } from "../controllers/TranscriptionWhatsapp.js";
 import { validateSTTKey } from "../middleware/authStt.js";
