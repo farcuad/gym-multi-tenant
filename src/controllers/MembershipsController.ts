@@ -73,10 +73,10 @@ export const createMembership = async (req: Request, res: Response) => {
       price: planSeleccionado.price,
       fecha_inicio: fecha_inicio,
       fecha_vencimiento: fechaVencimiento,
-      is_renewal: false
+      is_renewal: false,
+      id_membresia: membership.id
     });
     }
-    
     res.status(201).json({
       message: "Membresía y pago registrados correctamente",
       membership,
@@ -225,7 +225,8 @@ export const renewMembership = async (req: Request, res: Response) => {
         price: plan.price,
         fecha_inicio: hoyFormateado,
         fecha_vencimiento: fecha,
-        is_renewal: true
+        is_renewal: true,
+        id_membresia: membership.id
     });
     }
     

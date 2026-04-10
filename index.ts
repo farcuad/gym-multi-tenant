@@ -2,19 +2,33 @@ import app from "./src/app.js";
 import dotenv from "dotenv";
 import { initWhatsApp, whatsappClient } from "./src/config/Whatsapp.js";
 import { startCronJobs } from "./src/service/cronService.js";
-
-
+import pkg from 'whatsapp-web.js';
+const { MessageMedia } = pkg;
 dotenv.config();
 
 const PORT = process.env.name === 'FitLog' ? 3000 : 4000;
 
 app.post('/webhook/send-membership', async (req, res) => {
-    const { phone, message } = req.body;
+    const { phone, message, pdf, filename } = req.body;
     if (process.env.name !== 'FitLog') {
         return res.status(404).json({ error: "Este proceso no gestiona WhatsApp" });
     }
     try {
+        const chatId = `${phone}@c.us`;
+
         await whatsappClient.sendMessage(`${phone}@c.us`, message);
+        if(pdf) {
+            console.log(`📄 Enviando carnet PDF a ${phone}...`);
+            const media = new MessageMedia(
+                'application/pdf', 
+                pdf, 
+                filename || 'Carnet_FitLog.pdf'
+            );
+            
+            await whatsappClient.sendMessage(chatId, media, { 
+                caption: 'Aquí tienes tu carnet digital. 💪🏋️‍♂️' 
+            });
+        }
         console.log(`📩 Mensaje procesado para ${phone}`);
         res.status(200).json({ success: true });
     } catch (error) {
@@ -49,6 +63,7 @@ app.listen(PORT, () => {
 
 import fs from "fs";
 import path from "path";
+
 
 const tempFolder = "./temp_audio";
 

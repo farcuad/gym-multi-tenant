@@ -1,5 +1,6 @@
 import { query } from '../connect/connect.js';
 import axios from 'axios';
+import { generarCarnetBuffer } from '../utils/htmlPdf.js';
 interface NotificationData {
     client_id: number;
     gym_id: number;
@@ -8,6 +9,7 @@ interface NotificationData {
     fecha_inicio: string;
     fecha_vencimiento: string;
     is_renewal: boolean;
+    id_membresia: number;
 }
 
 export const sendMembershipNotification = async (data: NotificationData) => {
@@ -22,7 +24,7 @@ export const sendMembershipNotification = async (data: NotificationData) => {
         
         if (result.rows.length === 0) return;
 
-        const { name, phone, name_gym } = result.rows[0];
+        const { name, phone, name_gym, cedula } = result.rows[0];
 
         // 1. Limpieza de número para Venezuela
         let num = phone.replace(/\D/g, '');
@@ -62,9 +64,21 @@ export const sendMembershipNotification = async (data: NotificationData) => {
                       `Cualquier duda, estamos a tu disposición. ¡A darle con todo! 💪🔥`;
         }
 
+        console.log(`🗂️ Generando carnet para ${name}...`);
+        const pdfBuffer = await generarCarnetBuffer({
+            gymName: name_gym,
+            userName: name,
+            cedula: cedula || 'No proporcionada',
+            phone: phone,
+            planName: data.plan_name,
+            idMembresia: data.id_membresia
+        });
+
         await axios.post('http://localhost:3000/webhook/send-membership', {
             phone: num,
-            message: mensaje
+            message: mensaje,
+            pdf: pdfBuffer.toString('base64'), // <--- Enviamos el PDF como base64
+            filename: `Carnet_${name.replace(/\s+/g, '_')}.pdf`
         });
         console.log(`✅ Notificación de ${data.is_renewal ? 'RENOVACIÓN' : 'BIENVENIDA'} enviada a ${name}`);
 
