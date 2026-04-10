@@ -10,52 +10,105 @@ export async function generarCarnetBuffer(datos: {gymName: string, userName: str
 
     // 2. HTML del Carnet (Inline para rapidez, puedes usar un template aparte)
     const htmlContent = `
-    <html>
-    <head>
-        <style>
-            body { margin: 0; padding: 0; }
-            .card {
-                width: 85mm; height: 55mm;
-                background: white; border: 1px solid #ddd;
-                border-radius: 8px; display: flex;
-                font-family: sans-serif; overflow: hidden;
-            }
-            .left { width: 65%; padding: 15px; display: flex; flex-direction: column; justify-content: space-between; }
-            .right { width: 35%; background: #f8f9fa; display: flex; flex-direction: column; align-items: center; justify-content: center; border-left: 1px dashed #ccc; }
-            .gym-title { color: #e63946; font-size: 18px; font-weight: bold; margin-bottom: 10px; }
-            .info { font-size: 11px; line-height: 1.5; color: #333; }
-            .label { font-weight: bold; color: #666; }
-            .qr-img { width: 80px; height: 80px; }
-            .footer-text { font-size: 8px; color: #aaa; margin-top: 10px; }
-        </style>
-    </head>
-    <body>
-        <div class="card">
-            <div class="left">
-                <div class="gym-title">${datos.gymName}</div>
-                <div class="info">
-                    <div><span class="label">Socio:</span> ${datos.userName}</div>
-                    <div><span class="label">Cédula:</span> ${datos.cedula}</div>
-                    <div><span class="label">Tel:</span> ${datos.phone}</div>
-                    <div><span class="label">Plan:</span> ${datos.planName}</div>
-                </div>
-                <div style="font-size: 10px; font-weight: bold; color: #457b9d;">Socio FitLog</div>
-            </div>
-            <div class="right">
-                <img src="${qrBase64}" class="qr-img">
-                <div class="footer-text">ESCANEAME</div>
-            </div>
+    <style>
+    /* Eliminamos márgenes del navegador para que no cree páginas extra */
+    @page { margin: 0; }
+    body { margin: 0; padding: 0; background-color: #f0f0f0; }
+
+    .carnet {
+        width: 6.7cm;
+        height: 9.8cm;
+        background: #ffffff;
+        border: 1px solid #e0e0e0;
+        box-sizing: border-box;
+        font-family: 'Segoe UI', Roboto, sans-serif;
+        display: flex;
+        flex-direction: column;
+        padding: 15px;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .header {
+        border-bottom: 2px solid #d32f2f;
+        padding-bottom: 8px;
+        margin-bottom: 12px;
+    }
+
+    .gym-name {
+        color: #d32f2f;
+        font-size: 16px;
+        font-weight: bold;
+        text-transform: uppercase;
+    }
+
+    .info-container {
+        flex-grow: 1;
+    }
+
+    .data-row {
+        font-size: 12px;
+        margin-bottom: 6px;
+        color: #333;
+    }
+
+    .label {
+        font-weight: bold;
+        color: #777;
+        font-size: 10px;
+        display: block;
+        text-transform: uppercase;
+    }
+
+    .qr-section {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        margin-top: auto;
+        padding-top: 10px;
+        border-top: 1px dashed #ccc;
+    }
+
+    .qr-img {
+        width: 3.5cm; /* Ajustamos el tamaño del QR */
+        height: 3.5cm;
+    }
+
+    .footer {
+        font-size: 9px;
+        color: #004d40;
+        font-weight: bold;
+        margin-top: 5px;
+    }
+    </style>
+
+    <div class="carnet">
+        <div class="header">
+            <div class="gym-name">${datos.gymName}</div>
         </div>
-    </body>
-    </html>
+        
+        <div class="info-container">
+            <div class="data-row"><span class="label">Socio:</span> ${datos.userName}</div>
+            <div class="data-row"><span class="label">Cédula:</span> ${datos.cedula}</div>
+            <div class="data-row"><span class="label">Teléfono:</span> ${datos.phone}</div>
+            <div class="data-row"><span class="label">Plan:</span> ${datos.planName}</div>
+        </div>
+
+        <div class="qr-section">
+            <img src="${qrBase64}" class="qr-img">
+            <div class="footer">Socio FitLog</div>
+        </div>
+    </div>
     `;
 
     // 3. Opciones de generación
     const file = { content: htmlContent };
     const options = { 
-        width: '85mm', 
-        height: '55mm', 
+        width: '6.7cm', 
+        height: '9.8cm', 
         printBackground: true,
+        margin: { top: 0, right: 0, bottom: 0, left: 0 },
         args: ['--no-sandbox', '--disable-setuid-sandbox'] // Importante para que corra en tu VPS
     };
 

@@ -38,6 +38,8 @@ export const sendMembershipNotification = async (data: NotificationData) => {
         // 3. Definir mensajes según el tipo de acción
         let mensaje = "";
 
+        let pdfData:  string | null = null;
+        let filename: string = "";
         if (data.is_renewal) {
             // Plantilla de Renovación
             mensaje = `✅ *¡MEMBRESÍA RENOVADA!* ✅\n\n` +
@@ -62,23 +64,25 @@ export const sendMembershipNotification = async (data: NotificationData) => {
                       `🗓️ *Vence:* ${fFin}\n` +
                       `━━━━━━━━━━━━━━━━━━\n\n` +
                       `Cualquier duda, estamos a tu disposición. ¡A darle con todo! 💪🔥`;
-        }
 
-        console.log(`🗂️ Generando carnet para ${name}...`);
-        const pdfBuffer = await generarCarnetBuffer({
-            gymName: name_gym,
-            userName: name,
-            cedula: cedula || 'No proporcionada',
-            phone: phone,
-            planName: data.plan_name,
-            idMembresia: data.id_membresia
-        });
+            console.log(`🗂️ Generando carnet para ${name}...`);
+            const pdfBuffer = await generarCarnetBuffer({
+                gymName: name_gym,
+                userName: name,
+                cedula: cedula || 'No proporcionada',
+                phone: phone,
+                planName: data.plan_name,
+                idMembresia: data.id_membresia
+            });
+            pdfData  = pdfBuffer.toString('base64');
+            filename = `Carnet_${name.replace(/\s+/g, '_')}.pdf`;
+        }
 
         await axios.post('http://localhost:3000/webhook/send-membership', {
             phone: num,
             message: mensaje,
-            pdf: pdfBuffer.toString('base64'), // <--- Enviamos el PDF como base64
-            filename: `Carnet_${name.replace(/\s+/g, '_')}.pdf`
+            pdf: pdfData,
+            filename: filename
         });
         console.log(`✅ Notificación de ${data.is_renewal ? 'RENOVACIÓN' : 'BIENVENIDA'} enviada a ${name}`);
 
