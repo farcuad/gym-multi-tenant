@@ -58,13 +58,14 @@ export const createMembership = async (req: Request, res: Response) => {
     // Enviamos notificación de bienvenida por WhatsApp
     const subscription = await getSubscriptions(Number(gym_id_token));
 
-    const ahoraCaracas = new Date().toLocaleString("en-CA", { timeZone: "America/Caracas" }).split(',')[0];
-    if(!ahoraCaracas){
-      return res.status(500).json({ error: "Error al obtener la fecha de caracas" });
-    }
-    const activeSub = subscription.find(sub => 
-      sub.status === "active" && sub.end_date >= ahoraCaracas
-    );
+    const hoyCaracas = new Date(new Date().toLocaleString("en-US", { timeZone: "America/Caracas" }));
+    hoyCaracas.setHours(0, 0, 0, 0);
+
+    const activeSub = subscription.find(sub => {
+      const expDate = new Date(sub.end_date);
+      return sub.status === "active" && expDate >= hoyCaracas;
+    });
+    
     if(activeSub?.plan_type === "Premium") {
       sendMembershipNotification({
       client_id: Number(client_id),
@@ -214,9 +215,14 @@ export const renewMembership = async (req: Request, res: Response) => {
     const updated = await nenewdMembership(id, gym_id, membershipData);
 
     const subscription = await getSubscriptions(Number(gym_id));
+    const hoyCaracas = new Date(new Date().toLocaleString("en-US", { timeZone: "America/Caracas" }));
+    hoyCaracas.setHours(0, 0, 0, 0);
 
-    const activeSub = subscription.find(sub => sub.status === "active" && new Date(sub.end_date) >= new Date());
-    // Enviamos notifiacion de renovacion a su whatsapp
+    const activeSub = subscription.find(sub => {
+      const expDate = new Date(sub.end_date);
+      return sub.status === "active" && expDate >= hoyCaracas;
+    });
+
     if (activeSub?.plan_type === "Premium") {
       sendMembershipNotification({
         client_id: membership.client_id, // Usamos el ID que ya teníamos de la membresía anterior

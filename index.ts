@@ -28,6 +28,7 @@ app.post('/webhook/send-membership', async (req, res) => {
             await whatsappClient.sendMessage(chatId, media, { 
                 caption: 'Aquí tienes tu carnet digital. 💪🏋️‍♂️' 
             });
+            console.log(`✅ Carnet PDF enviado correctamente a ${phone}`);
         }
         console.log(`📩 Mensaje procesado para ${phone}`);
         res.status(200).json({ success: true });

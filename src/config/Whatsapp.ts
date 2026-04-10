@@ -4,11 +4,11 @@ import qrcode from 'qrcode-terminal';
 import dotenv from 'dotenv';
 
 dotenv.config();
-
+const isWindows = process.platform === 'win32';
 export const whatsappClient = new Client({
     authStrategy: new LocalAuth(),
     puppeteer: {
-        executablePath: process.env.CHROME_PATH || undefined,
+        executablePath: isWindows ? undefined : (process.env.CHROME_PATH || undefined),
         handleSIGINT: true,
         args: [
             '--no-sandbox',

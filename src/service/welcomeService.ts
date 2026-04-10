@@ -1,6 +1,8 @@
 import { query } from '../connect/connect.js';
 import axios from 'axios';
 import { generarCarnetBuffer } from '../utils/htmlPdf.js';
+import dontenv from 'dotenv';
+dontenv.config();
 interface NotificationData {
     client_id: number;
     gym_id: number;
@@ -12,10 +14,12 @@ interface NotificationData {
     id_membresia: number;
 }
 
+const PORT = process.env.WHATSAPP_PORT || 3000;
+
 export const sendMembershipNotification = async (data: NotificationData) => {
     try {
         const sql = `
-            SELECT c.name, c.phone, g.name_gym 
+            SELECT c.name, c.phone, c.cedula, g.name_gym 
             FROM clients c 
             JOIN gyms g ON c.gym_id = g.id 
             WHERE c.id = $1 AND g.id = $2
@@ -53,6 +57,7 @@ export const sendMembershipNotification = async (data: NotificationData) => {
                       `━━━━━━━━━━━━━━━━━━\n\n` +
                       `¡Gracias por tu lealtad y por seguir entrenando con nosotros! 🔥🏋️‍♂️`;
         } else {
+        console.log("🚀 Enviando notificación de bienvenida...");
             // Plantilla de Bienvenida
             mensaje = `🎉 *¡BIENVENIDO A ${name_gym.toUpperCase()}!* 🎉\n\n` +
                       `Hola *${name}*, nos emociona que te hayas unido a nuestra familia. 🙌\n\n` +
@@ -78,7 +83,7 @@ export const sendMembershipNotification = async (data: NotificationData) => {
             filename = `Carnet_${name.replace(/\s+/g, '_')}.pdf`;
         }
 
-        await axios.post('http://localhost:3000/webhook/send-membership', {
+        await axios.post(`http://localhost:${PORT}/webhook/send-membership`, {
             phone: num,
             message: mensaje,
             pdf: pdfData,
