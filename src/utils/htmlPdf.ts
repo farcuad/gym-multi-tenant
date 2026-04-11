@@ -8,9 +8,13 @@ export async function generarCarnetBuffer(datos: {gymName: string, userName: str
     const frontendUrl = `https://frontend-gym-topaz.vercel.app`
     const urlVerificacion = `${frontendUrl}/verify/${datos.idMembresia}`.trim();
     const qrBase64 = await QRCode.toDataURL(urlVerificacion, {
-        errorCorrectionLevel: 'M', // 'M' o 'H' ayuda a que el lector identifique mejor el contenido
-        margin: 2,
-        scale: 4
+        errorCorrectionLevel: 'H', // 'M' o 'H' ayuda a que el lector identifique mejor el contenido
+        margin: 1,
+        scale: 6, // Un poco más de escala mejora la definición de los puntos
+        color: {
+            dark: '#000000',
+            light: '#ffffff'
+        }
     });
 
     // 2. HTML del Carnet (Inline para rapidez, puedes usar un template aparte)
