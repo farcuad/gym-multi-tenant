@@ -107,9 +107,9 @@ export const getPublicMembershipVerification = async (membershipId: number) => {
         SELECT 
             m.id,
             m.estado,
-            m.fecha_vencimiento,
+            m.fecha_membresias as fecha_vencimiento,
             c.name AS client_name,
-            c.dni AS client_dni,
+            c.cedula AS client_cedula,
             g.name_gym,
             p.name AS plan_name
         FROM memberships m
