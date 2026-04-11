@@ -5,7 +5,8 @@ import * as html_pdf from 'html-pdf-node';
 export async function generarCarnetBuffer(datos: {gymName: string, userName: string, cedula: string, phone: string, planName: string, idMembresia: number}): Promise<Buffer> {
     
     // 1. URL de validación para el QR
-    const urlVerificacion = `https://frontend-gym-topaz.vercel.app/verify/${datos.idMembresia}`;
+    const frontendUrl = `https://frontend-gym-topaz.vercel.app`
+    const urlVerificacion = `${frontendUrl}/verify/${datos.idMembresia}`;
     const qrBase64 = await QRCode.toDataURL(urlVerificacion);
 
     // 2. HTML del Carnet (Inline para rapidez, puedes usar un template aparte)
