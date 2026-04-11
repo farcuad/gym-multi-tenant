@@ -295,7 +295,7 @@ export const verifyMembershipStatus = async (req: Request, res: Response) => {
       valid: !isExpired && isActive,
       data: {
         socio: membership.client_name,
-        cedula: membership.client_dni,
+        cedula: membership.client_cedula,
         gimnasio: membership.name_gym,
         plan: membership.plan_name,
         vencimiento: fechaVencimiento,
