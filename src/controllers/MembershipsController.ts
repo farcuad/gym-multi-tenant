@@ -1,5 +1,5 @@
 import type { Request, Response } from "express";
-import { registerMembership, getMembershipByGymId,nenewdMembership,deleteMembership, getMembershipById, } from "../models/Memberships.js";
+import { registerMembership, getMembershipByGymId,nenewdMembership, deleteMembership, getMembershipById, getPublicMembershipVerification, } from "../models/Memberships.js";
 import { getPlansByGymId } from "../models/Plans.js";
 import { registerPayment } from "../models/Payments.js";
 import type { CreatePaymentDTO } from "../types/Payments.js";
@@ -26,7 +26,7 @@ export const createMembership = async (req: Request, res: Response) => {
     const fin = new Date(inicio);
     fin.setDate(inicio.getDate() + planSeleccionado.duration_day);
     /// Formateamos la fecha de vencimiento a YYYY-MM-DD
-    const fechaVencimiento = `${fin.getFullYear()}-${String(fin.getMonth() + 1).padStart(2, '0')}-${String(fin.getDate()).padStart(2, '0')}`;
+    const fechaVencimiento = `${fin.getFullYear()}-${String(fin.getMonth() + 1).padStart(2, "0")}-${String(fin.getDate()).padStart(2, "0")}`;
     const membershipData = {
       gym_id: Number(gym_id_token),
       client_id: Number(client_id),
@@ -48,7 +48,9 @@ export const createMembership = async (req: Request, res: Response) => {
       chosen_rate_type: payment_info.chosen_rate_type,
       exchange_rate: Number(payment_info.exchange_rate),
       amount_paid_bs: Number(payment_info.amount_paid_bs),
-      amount_paid_usd: Number(payment_info.amount_paid_bs / Number(payment_info.exchange_rate)),
+      amount_paid_usd: Number(
+        payment_info.amount_paid_bs / Number(payment_info.exchange_rate),
+      ),
       payment_method: payment_info.payment_method,
       reference: payment_info.reference,
       status: "Confirmado" as "Confirmado" | "Pendiente",
@@ -58,31 +60,29 @@ export const createMembership = async (req: Request, res: Response) => {
     // Enviamos notificación de bienvenida por WhatsApp
     const subscription = await getSubscriptions(Number(gym_id_token));
 
-    const hoyCaracas = new Date(new Date().toLocaleString("en-US", { timeZone: "America/Caracas" }));
+    const hoyCaracas = new Date(
+      new Date().toLocaleString("en-US", { timeZone: "America/Caracas" }),
+    );
     hoyCaracas.setHours(0, 0, 0, 0);
 
-    const activeSub = subscription.find(sub => {
+    const activeSub = subscription.find((sub) => {
       const expDate = new Date(sub.end_date);
       return sub.status === "active" && expDate >= hoyCaracas;
     });
-    
-    if(activeSub?.plan_type === "Premium") {
+
+    if (activeSub?.plan_type === "Premium") {
       sendMembershipNotification({
-      client_id: Number(client_id),
-      gym_id: Number(gym_id_token),
-      plan_name: planSeleccionado.name,
-      price: planSeleccionado.price,
-      fecha_inicio: fecha_inicio,
-      fecha_vencimiento: fechaVencimiento,
-      is_renewal: false,
-      id_membresia: membership.id
-    });
+        client_id: Number(client_id),
+        gym_id: Number(gym_id_token),
+        plan_name: planSeleccionado.name,
+        price: planSeleccionado.price,
+        fecha_inicio: fecha_inicio,
+        fecha_vencimiento: fechaVencimiento,
+        is_renewal: false,
+        id_membresia: membership.id,
+      });
     }
-    res.status(201).json({
-      message: "Membresía y pago registrados correctamente",
-      membership,
-      payment,
-    });
+    res.status(201).json({ message: "Membresía y pago registrados correctamente", membership, payment, });
   } catch (error) {
     res.status(400).json({ error: (error as Error).message });
   }
@@ -95,9 +95,7 @@ export const getMembership = async (req: Request, res: Response) => {
     const gym_id_token = req.user.gym_id;
     // Obtenemos la membresía del gimnasio
     const membership = await getMembershipByGymId(Number(gym_id_token));
-    res
-      .status(200)
-      .json({ message: "Membresía obtenida correctamente", membership });
+    res.status(200).json({ message: "Membresía obtenida correctamente", membership });
   } catch (error) {
     res.status(400).json({ error: (error as Error).message });
   }
@@ -126,46 +124,47 @@ export const renewMembership = async (req: Request, res: Response) => {
     // Obtenemos el plan
     const plans = await getPlansByGymId(gym_id);
     // Buscamos el plan
-    const plan = plans.find((p) => p.id === Number(plan_id ?? membership.plan_id));
+    const plan = plans.find(
+      (p) => p.id === Number(plan_id ?? membership.plan_id),
+    );
     // Validamos
     if (!plan) {
       return res.status(404).json({ error: "Plan no encontrado" });
     }
 
-    const fechaCaracas = new Date().toLocaleString("en-CA", {
-      timeZone: "America/Caracas",
-      hour12: false,
-    }).split(',')[0]; // Resultado: "2026-04-05"
+    const fechaCaracas = new Date().toLocaleString("en-CA", {timeZone: "America/Caracas", hour12: false, }).split(",")[0]; // Resultado: "2026-04-05"
 
     if (!fechaCaracas) {
       return res.status(500).json({ error: "Error al obtener la fecha de caracas" });
     }
     // 2. CREAR EL OBJETO "HOY" BASADO EN ESA FECHA
-    const [year, month, day] = fechaCaracas.split('-').map(Number);
+    const [year, month, day] = fechaCaracas.split("-").map(Number);
     if (!year || !month) {
       return res.status(500).json({ error: "Error al parsear la fecha de caracas" });
     }
     const hoy = new Date(year, month - 1, day);
 
     let fechaString = "";
-    
+
     const valorFecha = membership.fecha_vencimiento;
     // Validamos el tipo de fecha (puede ser string o Date dependiendo de cómo se haya obtenido de la base de datos) y formateamos a YYYY-MM-DD
     if (valorFecha instanceof Date) {
       const y = valorFecha.getFullYear();
-      const m = String(valorFecha.getMonth() + 1).padStart(2, '0');
-      const d = String(valorFecha.getDate()).padStart(2, '0');
+      const m = String(valorFecha.getMonth() + 1).padStart(2, "0");
+      const d = String(valorFecha.getDate()).padStart(2, "0");
       fechaString = `${y}-${m}-${d}`;
-    } else if (typeof valorFecha === 'string') {
+    } else if (typeof valorFecha === "string") {
       // Si es string, usamos split
-      fechaString = valorFecha.split('T')[0] ?? "";
+      fechaString = valorFecha.split("T")[0] ?? "";
     }
 
-    const partesRaw = fechaString.split('-');
+    const partesRaw = fechaString.split("-");
 
     // 2. Validamos que tengamos los 3 componentes
     if (partesRaw.length !== 3 || fechaString === "") {
-      throw new Error(`El formato de fecha es irreconocible. Recibido: ${membership.fecha_vencimiento}`);
+      throw new Error(
+        `El formato de fecha es irreconocible. Recibido: ${membership.fecha_vencimiento}`,
+      );
     }
 
     const [y, m, d] = partesRaw.map(Number) as [number, number, number];
@@ -181,9 +180,9 @@ export const renewMembership = async (req: Request, res: Response) => {
 
     // Sumamos la duración
     newEndDate.setDate(newEndDate.getDate() + plan.duration_day);
-    
+
     // Formato final YYYY-MM-DD
-    const fecha = `${newEndDate.getFullYear()}-${String(newEndDate.getMonth() + 1).padStart(2, '0')}-${String(newEndDate.getDate()).padStart(2, '0')}`;
+    const fecha = `${newEndDate.getFullYear()}-${String(newEndDate.getMonth() + 1).padStart(2, "0")}-${String(newEndDate.getDate()).padStart(2, "0")}`;
     // Registramos pago
     const paymentData: CreatePaymentDTO = {
       gym_id,
@@ -200,7 +199,7 @@ export const renewMembership = async (req: Request, res: Response) => {
       status: "Confirmado",
     };
     // Formateamos la fecha a YYYY-MM-DD
-    const hoyFormateado = `${hoy.getFullYear()}-${String(hoy.getMonth() + 1).padStart(2, '0')}-${String(hoy.getDate()).padStart(2, '0')}`;
+    const hoyFormateado = `${hoy.getFullYear()}-${String(hoy.getMonth() + 1).padStart(2, "0")}-${String(hoy.getDate()).padStart(2, "0")}`;
     const payment = await registerPayment(paymentData);
     // Actualizamos la membresía
     const membershipData = {
@@ -215,10 +214,12 @@ export const renewMembership = async (req: Request, res: Response) => {
     const updated = await nenewdMembership(id, gym_id, membershipData);
 
     const subscription = await getSubscriptions(Number(gym_id));
-    const hoyCaracas = new Date(new Date().toLocaleString("en-US", { timeZone: "America/Caracas" }));
+    const hoyCaracas = new Date(
+      new Date().toLocaleString("en-US", { timeZone: "America/Caracas" }),
+    );
     hoyCaracas.setHours(0, 0, 0, 0);
 
-    const activeSub = subscription.find(sub => {
+    const activeSub = subscription.find((sub) => {
       const expDate = new Date(sub.end_date);
       return sub.status === "active" && expDate >= hoyCaracas;
     });
@@ -232,15 +233,11 @@ export const renewMembership = async (req: Request, res: Response) => {
         fecha_inicio: hoyFormateado,
         fecha_vencimiento: fecha,
         is_renewal: true,
-        id_membresia: membership.id
-    });
+        id_membresia: membership.id,
+      });
     }
-    
-    res.status(200).json({
-      message: "Membresía renovada correctamente",
-      membership: updated,
-      payment,
-    });
+
+    res.status(200).json({ message: "Membresía renovada correctamente", membership: updated, payment, });
   } catch (error) {
     res.status(400).json({ error: (error as Error).message });
   }
@@ -259,12 +256,54 @@ export const deleteMemberships = async (req: Request, res: Response) => {
   } catch (error: any) {
     // Manejamos error de postgresql
     if (error.code === "23503") {
-      return res.status(400).json({
-        message:
-          "No se puede eliminar la membresía porque tiene pagos asociados",
-      });
+      return res.status(400).json({ message: "No se puede eliminar la membresía porque tiene pagos asociados", });
     }
     // Si algo falla, mostramos error por defecto
     return res.status(500).json({ message: "Ocurrio un error al eliminar la membresia" });
+  }
+};
+
+export const verifyMembershipStatus = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+
+    if (!id) {
+      return res.status(400).json({ error: "ID de membresía requerido" });
+    }
+
+    const membership = await getPublicMembershipVerification(Number(id));
+
+    if (!membership) {
+      return res.status(404).json({ valid: false, message: "La membresía no existe en nuestro sistema.", });
+    }
+
+    // Obtener fecha actual en Caracas para comparar
+    const ahoraCaracas = new Date().toLocaleString("en-CA", { timeZone: "America/Caracas", hour12: false, }).split(",")[0];
+    if (!ahoraCaracas) {
+      return res.status(500).json({ error: "Error al obtener la fecha actual" });
+    }
+
+    const fechaVencimiento = membership.fecha_vencimiento instanceof Date
+        ? membership.fecha_vencimiento.toISOString().split("T")[0]
+        : membership.fecha_vencimiento.split("T")[0];
+
+    // Lógica de validación
+    const isExpired = fechaVencimiento < ahoraCaracas;
+    const isActive = membership.estado === "activo";
+
+    res.status(200).json({
+      valid: !isExpired && isActive,
+      data: {
+        socio: membership.client_name,
+        cedula: membership.client_dni,
+        gimnasio: membership.name_gym,
+        plan: membership.plan_name,
+        vencimiento: fechaVencimiento,
+        estado_db: membership.estado,
+        mensaje: isExpired ? "Membresía Vencida" : isActive ? "Acceso Permitido": "Membresía Inactiva",},
+    });
+  } catch (error) {
+    console.error("Error en verificación pública:", error);
+    res.status(500).json({ error: "Error interno al verificar el código" });
   }
 };

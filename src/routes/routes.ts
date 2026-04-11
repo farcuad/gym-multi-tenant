@@ -1,10 +1,9 @@
 import { Router } from "express";
-import { loginAdmin, registerAdmin, resetPassword, forgotPassword,
-} from "../controllers/AuthController.js";
-import { createClient, fetchClientsByGymId, fetchClientById, updateClient, deleteClient,alertClient, } from "../controllers/ClientController.js";
-import { createMembership, getMembership, renewMembership, deleteMemberships,} from "../controllers/MembershipsController.js";
-import { createPlan, fetchPlansByGymId, modifyPlan, removePlan, } from "../controllers/PlansController.js";
-import { getDashboardData, updatePlan, getGymHistory, } from "../controllers/AdminSuperiorController.js";
+import { loginAdmin, registerAdmin, resetPassword, forgotPassword,} from "../controllers/AuthController.js";
+import { createClient, fetchClientsByGymId, fetchClientById, updateClient, deleteClient, alertClient,} from "../controllers/ClientController.js";
+import { createMembership, getMembership, renewMembership, deleteMemberships, verifyMembershipStatus,} from "../controllers/MembershipsController.js";
+import { createPlan, fetchPlansByGymId, modifyPlan, removePlan,} from "../controllers/PlansController.js";
+import { getDashboardData, updatePlan, getGymHistory,} from "../controllers/AdminSuperiorController.js";
 import { getPayments } from "../controllers/PaymentsController.js";
 import { analizarGanancias } from "../controllers/AiController.js";
 import { authToken } from "../middleware/authMiddleware.js";
@@ -12,7 +11,7 @@ import { isAdmin } from "../middleware/isAdmin.js";
 import { requirePlan } from "../middleware/requirePlan.js";
 import { loadSubscription } from "../middleware/loadSubcription.js";
 import { getSubscription } from "../controllers/SubsCriptionController.js";
-import { getMetricsPayments, getMetricsNewClients, } from "../controllers/MetricasController.js";
+import { getMetricsPayments,getMetricsNewClients, } from "../controllers/MetricasController.js";
 import { getRate } from "../controllers/BcvController.js";
 import { transcribeAudioController } from "../controllers/TranscriptionWhatsapp.js";
 import { validateSTTKey } from "../middleware/authStt.js";
@@ -45,20 +44,18 @@ const upload = multer({
 });
 
 // Ruta para transcripción de audio de WhatsApp
-router.post(
-  "/stt/transcribe",
-  validateSTTKey,
-  upload.single("audio"),
-  transcribeAudioController,
-);
+router.post("/stt/transcribe", validateSTTKey, upload.single("audio"), transcribeAudioController);
 // Rutas publicas
 router.post("/register", registerAdmin);
 router.post("/login", loginAdmin);
+// Ruta para obtener los datos de la membresia mediante qr
+
 // Rutas para recuperación de contraseña
 router.post("/admin/forgot-password", forgotPassword);
 router.post("/admin/password", resetPassword);
 router.get("/bcv-rate", getRate);
 // Middleware para proteger las rutas siguientes
+router.get("/memberships/:id/verify", verifyMembershipStatus);
 router.use(authToken);
 // Rutas para el admin superior
 router.get("/dashboard", isAdmin, getDashboardData);
