@@ -9,7 +9,7 @@ export async function generarCarnetBuffer(datos: {gymName: string, userName: str
     const urlVerificacion = `${frontendUrl}/verify/${datos.idMembresia}`.trim();
     const qrBase64 = await QRCode.toDataURL(urlVerificacion, {
         errorCorrectionLevel: 'H', // 'M' o 'H' ayuda a que el lector identifique mejor el contenido
-        margin: 1,
+        margin: 4,
         scale: 6, // Un poco más de escala mejora la definición de los puntos
         color: {
             dark: '#000000',
