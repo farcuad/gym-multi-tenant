@@ -267,10 +267,6 @@ export const verifyMembershipStatus = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
 
-    if (!id) {
-      return res.status(400).json({ error: "ID de membresía requerido" });
-    }
-
     const membership = await getPublicMembershipVerification(Number(id));
 
     if (!membership) {
@@ -290,9 +286,10 @@ export const verifyMembershipStatus = async (req: Request, res: Response) => {
     // Lógica de validación
     const isExpired = fechaVencimiento < ahoraCaracas;
     const isActive = membership.estado === "activo";
+    const canAcces = !isExpired && isActive;
 
     res.status(200).json({
-      valid: !isExpired && isActive,
+      valid: canAcces,
       data: {
         socio: membership.client_name,
         cedula: membership.client_cedula,
