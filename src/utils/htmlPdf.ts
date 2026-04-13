@@ -27,52 +27,55 @@ export async function generarCarnetBuffer(datos: {gymName: string, userName: str
     .carnet {
         width: 6.7cm;
         height: 9.8cm;
-        background: #1e252d; /* Fondo oscuro de la imagen */
+        background: #1e252d; 
         box-sizing: border-box;
         font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         display: flex;
         flex-direction: column;
         position: relative;
-        overflow: hidden;
+        overflow: hidden; /* Evita que cualquier elemento sobresalga */
     }
 
     /* Franja superior verde */
     .header {
-        background-color: #48bb78; /* Verde esmeralda */
-        padding: 15px;
+        background-color: #009689; 
+        padding: 0 15px; /* Reducido padding vertical */
         display: flex;
         justify-content: space-between;
         align-items: center;
-        height: 1.8cm;
+        height: 1.6cm; /* Reducido de 1.8cm para ganar espacio */
         box-sizing: border-box;
+        width: 100%;
     }
 
     .gym-name {
         color: #0c1117;
-        font-size: 18px;
+        font-size: 16px; /* Ajustado ligeramente */
         font-weight: 900;
         text-transform: uppercase;
-        letter-spacing: 1px;
+        letter-spacing: 0.5px;
     }
 
     .fitlog-badge {
         background-color: #0c1117;
-        color: #48bb78;
-        font-size: 9px;
+        color: #009689;
+        font-size: 8px;
         font-weight: bold;
-        padding: 4px 10px;
-        border-radius: 12px;
+        padding: 3px 8px;
+        border-radius: 10px;
         text-transform: uppercase;
-        letter-spacing: 1px;
     }
 
     /* Contenedor principal de info */
     .content {
-        padding: 20px 15px;
+        padding: 10px 15px; /* Reducido el primer valor (top) de 20px a 10px */
         display: flex;
-        flex-direction: row; /* Para poner info a la izquierda y QR a la derecha */
+        flex-direction: row; 
         justify-content: space-between;
+        align-items: center; /* Centra verticalmente el contenido */
         flex-grow: 1;
+        width: 100%;
+        box-sizing: border-box; /* Crucial para que el padding no sume al ancho */
     }
 
     .info-section {
@@ -80,32 +83,33 @@ export async function generarCarnetBuffer(datos: {gymName: string, userName: str
         display: flex;
         flex-direction: column;
         justify-content: center;
+        max-width: 60%; /* Evita que el texto empuje al QR */
     }
 
     .data-group {
-        margin-bottom: 12px;
+        margin-bottom: 8px; /* Reducido de 12px para compactar */
     }
 
     .label {
-        color: #48bb78; /* Etiquetas en verde */
-        font-size: 9px;
+        color: #009689; 
+        font-size: 8px;
         font-weight: 800;
         text-transform: uppercase;
-        margin-bottom: 2px;
+        margin-bottom: 1px;
         display: block;
-        letter-spacing: 0.5px;
     }
 
     .value {
         color: #ffffff;
-        font-size: 13px;
+        font-size: 12px;
         font-weight: 700;
-        word-break: break-word;
+        word-break: break-all; /* Por si la cédula o nombre es muy largo */
     }
 
     .value-name {
-        font-size: 16px;
-        margin-bottom: 10px;
+        font-size: 15px;
+        margin-bottom: 5px;
+        line-height: 1.1;
     }
 
     /* Sección del QR */
@@ -113,63 +117,59 @@ export async function generarCarnetBuffer(datos: {gymName: string, userName: str
         display: flex;
         align-items: center;
         justify-content: center;
-        margin-left: 10px;
+        width: 40%;
     }
 
     .qr-box {
         background: #ffffff;
-        padding: 6px;
-        border-radius: 8px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
+        padding: 5px;
+        border-radius: 6px;
     }
 
     .qr-img {
-        width: 2.4cm;
-        height: 2.4cm;
+        width: 2.2cm; /* Ajustado ligeramente para que no apriete los bordes */
+        height: 2.2cm;
         display: block;
     }
 
 </style>
 
-    <div class="carnet">
-        <div class="header">
-            <div class="gym-name">${datos.gymName}</div>
-            <div class="fitlog-badge">FitLog</div>
-        </div>
-        
-        <div class="content">
-            <div class="info-section">
-                <div class="data-group">
-                    <span class="label">Nombre del Cliente</span>
-                    <div class="value value-name">${datos.userName}</div>
-                </div>
-
-                <div class="data-group">
-                    <span class="label">Cédula / ID</span>
-                    <div class="value">${datos.cedula}</div>
-                </div>
-
-                <div class="data-group" style="display: flex; gap: 15px;">
-                    <div>
-                        <span class="label">Teléfono</span>
-                        <div class="value" style="font-size: 11px;">${datos.phone}</div>
-                    </div>
-                    <div>
-                        <span class="label">Plan</span>
-                        <div class="value" style="color: #48bb78; font-size: 11px;">${datos.planName}</div>
-                    </div>
-                </div>
+<div class="carnet">
+    <div class="header">
+        <div class="gym-name">${datos.gymName}</div>
+        <div class="fitlog-badge">FitLog</div>
+    </div>
+    
+    <div class="content">
+        <div class="info-section">
+            <div class="data-group">
+                <span class="label">Nombre del Cliente</span>
+                <div class="value value-name">${datos.userName}</div>
             </div>
 
-            <div class="qr-container">
-                <div class="qr-box">
-                    <img src="${qrBase64}" class="qr-img">
-                </div>
+            <div class="data-group">
+                <span class="label">Cédula / ID</span>
+                <div class="value">${datos.cedula}</div>
+            </div>
+
+            <div class="data-group">
+                <span class="label">Teléfono</span>
+                <div class="value">${datos.phone}</div>
+            </div>
+
+            <div class="data-group">
+                <span class="label">Plan</span>
+                <div class="value" style="color: #009689;">${datos.planName}</div>
+            </div>
+        </div>
+
+        <div class="qr-container">
+            <div class="qr-box">
+                <img src="${qrBase64}" class="qr-img">
             </div>
         </div>
     </div>
+</div>
     `;
 
     // 3. Opciones de generación
