@@ -13,8 +13,6 @@ import { loadSubscription } from "../middleware/loadSubcription.js";
 import { getSubscription } from "../controllers/SubsCriptionController.js";
 import { getMetricsPayments,getMetricsNewClients, } from "../controllers/MetricasController.js";
 import { getRate } from "../controllers/BcvController.js";
-import { transcribeAudioController } from "../controllers/TranscriptionWhatsapp.js";
-import { validateSTTKey } from "../middleware/authStt.js";
 import multer from "multer";
 import path from "path";
 import fs from "fs";
@@ -43,8 +41,6 @@ const upload = multer({
   limits: { fileSize: 10 * 1024 * 1024 }, // Límite de 10MB
 });
 
-// Ruta para transcripción de audio de WhatsApp
-router.post("/stt/transcribe", validateSTTKey, upload.single("audio"), transcribeAudioController);
 // Rutas publicas
 router.post("/register", registerAdmin);
 router.post("/login", loginAdmin);

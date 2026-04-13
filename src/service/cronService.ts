@@ -1,7 +1,15 @@
 import cron from 'node-cron';
 import { query } from '../connect/connect.js';
-import { whatsappClient } from '../config/Whatsapp.js';
+import axios from 'axios';
+import dontenv from 'dotenv';
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+dontenv.config();
 
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const CARNETS_DIR = path.join(__dirname, '..', '..', 'carnets');
 
 interface Clients {
     cliente_nombre: string;
@@ -10,6 +18,25 @@ interface Clients {
     gym_nombre: string;
     dias_para_vencer: number;
 }
+
+const WHAIBOT_URL = 'https://whaibot.com/api/send-message';
+const WHAIBOT_BOT_ID = process.env.WHAIBOT_BOT_ID || '';
+const WHAIBOT_CLIENT_KEY = process.env.WHAIBOT_CLIENT_KEY || '';
+
+const sendWhaibot = async (to: string, message: string) => {
+    await axios.post(WHAIBOT_URL, {
+        botId: WHAIBOT_BOT_ID,
+        to,
+        message,
+        fromMe: 'FitLog'
+    }, {
+        headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+            'x-client-key': WHAIBOT_CLIENT_KEY
+        }
+    });
+};
 
 const getFechaVenezuela = () => {
     const fecha = new Date(new Date().toLocaleString("en-US", {timeZone: "America/Caracas"}));
@@ -66,7 +93,6 @@ export const ejecutarNotifiaciones = async () => {
                     numeroLimpio = '58' + numeroLimpio;
                 }
 
-                const chatId = `${numeroLimpio}@c.us`;
                 const fechaLimpia = new Date(cliente.fecha_membresia).toLocaleDateString('es-VE');
 
                 let mensaje = "";
@@ -77,13 +103,11 @@ export const ejecutarNotifiaciones = async () => {
                 }
 
             try {
-                if (whatsappClient && whatsappClient.info) {
-                    await whatsappClient.sendMessage(chatId, mensaje);
-                    console.log(`✅ [${cliente.dias_para_vencer === 0 ? 'HOY' : 'PREVENTIVO'}] Enviado a ${cliente.cliente_nombre}`);
-                    
-                    // Delay para evitar bloqueos (3 segundos está bien)
-                    await new Promise(resolve => setTimeout(resolve, 3000));
-                }
+                await sendWhaibot(numeroLimpio, mensaje);
+                console.log(`✅ [${cliente.dias_para_vencer === 0 ? 'HOY' : 'PREVENTIVO'}] Enviado a ${cliente.cliente_nombre}`);
+                
+                // Delay para evitar bloqueos (3 segundos está bien)
+                await new Promise(resolve => setTimeout(resolve, 3000));
             } catch (error) {
                 console.error(`❌ Error con ${cliente.cliente_nombre}:`, error);
             }
@@ -93,12 +117,56 @@ export const ejecutarNotifiaciones = async () => {
         }
 };
 
+// Función para limpiar carnets con más de 1 hora de antigüedad
+export const limpiarCarnetsAntiguos = async () => {
+    try {
+        if (!fs.existsSync(CARNETS_DIR)) return;
+
+        const files = fs.readdirSync(CARNETS_DIR);
+        const ahora = Date.now();
+        const UNA_HORA = 60 * 60 * 1000;
+
+        console.log(`🧹 Iniciando limpieza de carnets antiguos en: ${CARNETS_DIR}`);
+        
+        let contador = 0;
+        for (const file of files) {
+            if (file.endsWith('.pdf')) {
+                const filePath = path.join(CARNETS_DIR, file);
+                const stats = fs.statSync(filePath);
+                const antiguedad = ahora - stats.mtimeMs;
+
+                if (antiguedad > UNA_HORA) {
+                    fs.unlinkSync(filePath);
+                    console.log(`🗑️ Archivo eliminado por antigüedad: ${file}`);
+                    contador++;
+                }
+            }
+        }
+        
+        if (contador > 0) {
+            console.log(`✅ Se eliminaron ${contador} carnets antiguos.`);
+        } else {
+            console.log('ℹ️ No se encontraron carnets para eliminar.');
+        }
+
+    } catch (error) {
+        console.error('❌ Error al limpiar carnets antiguos:', error);
+    }
+};
+
 
 export const startCronJobs = () => {
+    // Tarea diaria de notificaciones de vencimiento (6 AM)
     cron.schedule('0 6 * * *', async () => {
         console.log('⏰ Iniciando tarea diaria de notificaciones de vencimiento...');
         await ejecutarNotifiaciones();
     }, {
         timezone: 'America/Caracas'
+    });
+
+    // Tarea horaria de limpieza de carnets
+    cron.schedule('0 * * * *', async () => {
+        console.log('🧹 Ejecutando limpieza automática de carnets (cada hora)...');
+        await limpiarCarnetsAntiguos();
     });
 }
