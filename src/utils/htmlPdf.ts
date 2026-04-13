@@ -177,7 +177,7 @@ export async function generarCarnetBuffer(datos: {gymName: string, userName: str
 
                     <div class="data-group">
                         <span class="label">Plan</span>
-                        <div class="value"">${datos.planName}</div>
+                        <div class="value">${datos.planName}</div>
                     </div>
                 </div>
 
