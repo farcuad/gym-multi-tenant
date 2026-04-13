@@ -11,6 +11,9 @@ const __dirname = path.dirname(__filename);
 app.use(cors());
 app.use(express.json({ limit: '10mb' }));
 app.use("/gym-api/carnets", express.static(path.join(__dirname, "..", "carnets")));
+
+// 2. Ruta sin prefijo (Para cuando el proxy limpia la URL y deja solo /carnets)
+app.use("/carnets", express.static(path.join(__dirname, "..", "carnets")))
 app.use("/api", router);    
 
 export default app;
