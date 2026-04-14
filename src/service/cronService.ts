@@ -74,7 +74,7 @@ export const ejecutarNotifiaciones = async () => {
               AND c.activo = true
               AND gs.status = 'active'
               AND gs.plan_type = 'Premium'
-              AND gs.end_date >= CURRENT_DATE`;
+              AND gs.end_date >= $1::date`;
 
             const result = await query(sql, [fechaHoyVzla]);
             const vencidos: Clients[] = result.rows;
@@ -165,7 +165,7 @@ export const startCronJobs = () => {
     });
 
     // Tarea horaria de limpieza de carnets
-    cron.schedule('0 * * * *', async () => {
+    cron.schedule('0 22 * * *', async () => {
         console.log('🧹 Ejecutando limpieza automática de carnets (cada hora)...');
         await limpiarCarnetsAntiguos();
     });
