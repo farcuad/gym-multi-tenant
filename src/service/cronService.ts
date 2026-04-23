@@ -17,23 +17,32 @@ interface Clients {
     fecha_membresia: string;
     gym_nombre: string;
     dias_para_vencer: number;
+    whaibot_id: string | null;
+    whaibot_key: string | null;
 }
 
 const WHAIBOT_URL = 'https://whaibot.com/api/send-message';
 const WHAIBOT_BOT_ID = process.env.WHAIBOT_BOT_ID || '';
 const WHAIBOT_CLIENT_KEY = process.env.WHAIBOT_CLIENT_KEY || '';
 
-const sendWhaibot = async (to: string, message: string) => {
+const sendWhaibot = async (to: string, message: string, botId?: string, apiKey?: string) => {
+    const id = botId || WHAIBOT_BOT_ID;
+    const key = apiKey || WHAIBOT_CLIENT_KEY;
+
+    if (!id || !key) {
+        console.error('❌ Error: No se ha configurado el botId o apiKey para el envío de mensajes.');
+        return;
+    }
+
     await axios.post(WHAIBOT_URL, {
-        botId: WHAIBOT_BOT_ID,
         to,
         message,
         fromMe: 'FitLog'
     }, {
         headers: {
             'Content-Type': 'application/json',
-            'Accept': 'application/json',
-            'x-client-key': WHAIBOT_CLIENT_KEY
+            'x-client-key': key,
+            'x-client-botid': id,
         }
     });
 };
@@ -65,11 +74,14 @@ export const ejecutarNotifiaciones = async () => {
                 c.phone AS telefono, 
                 m.fecha_membresias AS fecha_membresia, 
                 g.name_gym AS gym_nombre,
-                (m.fecha_membresias::date - $1::date) AS dias_para_vencer
+                (m.fecha_membresias::date - $1::date) AS dias_para_vencer,
+                gbc.whaibot_id,
+                gbc.whaibot_key
             FROM clients c
             JOIN memberships m ON m.client_id = c.id
             JOIN gyms g ON c.gym_id = g.id
             JOIN gym_subscriptions gs ON g.id = gs.gym_id
+            LEFT JOIN gym_bot_configs gbc ON g.id = gbc.gym_id
             WHERE (m.fecha_membresias::date - $1::date) IN (0, 3) 
               AND c.activo = true
               AND gs.status = 'active'
@@ -103,7 +115,7 @@ export const ejecutarNotifiaciones = async () => {
                 }
 
             try {
-                await sendWhaibot(numeroLimpio, mensaje);
+                await sendWhaibot(numeroLimpio, mensaje, cliente.whaibot_id || undefined, cliente.whaibot_key || undefined);
                 console.log(`✅ [${cliente.dias_para_vencer === 0 ? 'HOY' : 'PREVENTIVO'}] Enviado a ${cliente.cliente_nombre}`);
                 
                 // Delay para evitar bloqueos (3 segundos está bien)

@@ -1,4 +1,5 @@
 import { query } from '../connect/connect.js';
+import { getbotsConfigById } from '../models/BotConfig.js';
 import axios from 'axios';
 import fs from 'fs';
 import path from 'path';
@@ -33,17 +34,24 @@ if (!fs.existsSync(CARNETS_DIR)) {
     console.log("📁 Carpeta 'carnets' creada automáticamente.");
 }
 
-const sendWhaibot = async (to: string, message: string) => {
+const sendWhaibot = async (to: string, message: string, botId?: string, apiKey?: string) => {
+    const id = botId || WHAIBOT_BOT_ID;
+    const key = apiKey || WHAIBOT_CLIENT_KEY;
+
+    if (!id || !key) {
+        console.error('❌ Error: No se ha configurado el botId o apiKey para el envío de mensajes.');
+        return;
+    }
+
     return await axios.post(WHAIBOT_URL, {
-        botId: WHAIBOT_BOT_ID,
         to,
         message,
         fromMe: 'FitLog'
     }, {
         headers: {
             'Content-Type': 'application/json',
-            'Accept': 'application/json',
-            'x-client-key': WHAIBOT_CLIENT_KEY
+            'x-client-key': key,
+            'x-client-botid': id,
         }
     });
 };
@@ -63,6 +71,11 @@ export const sendMembershipNotification = async (data: NotificationData) => {
         if (result.rows.length === 0) return;
 
         const { name, phone, name_gym, cedula } = result.rows[0];
+
+        // Obtener configuración del bot para este gimnasio
+        const botConfig = await getbotsConfigById(data.gym_id);
+        const botId = botConfig?.whaibot_id;
+        const apiKey = botConfig?.whaibot_key;
 
         // 1. Limpieza de número para Venezuela
         let num = phone.replace(/\D/g, '');
@@ -122,12 +135,12 @@ export const sendMembershipNotification = async (data: NotificationData) => {
             const downloadUrl = `${BASE_URL}/carnets/${filename}`;
 
             // Enviar mensaje con link de descarga del carnet
-            await sendWhaibot(num, `📎 Aquí tienes tu carnet digital, *${name}*:\n${downloadUrl}`);
+            await sendWhaibot(num, `📎 Aquí tienes tu carnet digital, *${name}*:\n${downloadUrl}`, botId, apiKey);
             console.log(`✅ Link de carnet enviado a ${name}`);
         }
 
         // Enviar mensaje de texto principal
-        const response = await sendWhaibot(num, mensaje);
+        const response = await sendWhaibot(num, mensaje, botId, apiKey);
         console.log(`✅ Notificación de ${data.is_renewal ? 'RENOVACIÓN' : 'BIENVENIDA'} enviada a ${name}`);
 
         // Si se envió correctamente (201), ya no borramos aquí. 

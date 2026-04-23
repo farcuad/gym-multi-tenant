@@ -13,6 +13,7 @@ import { loadSubscription } from "../middleware/loadSubcription.js";
 import { getSubscription } from "../controllers/SubsCriptionController.js";
 import { getMetricsPayments,getMetricsNewClients, } from "../controllers/MetricasController.js";
 import { getRate } from "../controllers/BcvController.js";
+import { createbotsConfigController, getbotsConfigByIdController, updatebotsConfigByIdController, deletebotsConfigByIdController } from "../controllers/BotConfigController.js";
 import multer from "multer";
 import path from "path";
 import fs from "fs";
@@ -84,6 +85,12 @@ router.get("/metrics/payments", getMetricsPayments);
 router.get("/metrics/new-clients", getMetricsNewClients);
 // Ruta para geminis
 router.post("/analizar", requirePlan("Medium"), analizarGanancias);
+
+// Rutas para la configuracion del bot
+router.post("/bot-config", createbotsConfigController);
+router.get("/bot-config", getbotsConfigByIdController);
+router.put("/bot-config/:id", updatebotsConfigByIdController);
+router.delete("/bot-config/:id", deletebotsConfigByIdController);
 
 //router.post("/rutinas", requirePlan("Premiun") , analizarGanancias);
 export default router;
