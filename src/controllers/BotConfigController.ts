@@ -22,7 +22,7 @@ export const getbotsConfigByIdController = async (req: Request, res: Response) =
         if (!result) {
             return res.status(404).json({ message: 'Configuracion del bot no encontrada' });
         }
-        return res.status(200).json(result);
+        return res.status(200).json({ message: "Bots obtenidos correctamente", bots: result});
     } catch (error) {
         console.error(error);
         return res.status(500).json({ message: 'Error al obtener la configuracion del bot' });
