@@ -10,7 +10,7 @@ export const createClient = async (req: Request, res: Response) => {
         // Validamos si el cliente ya existe por cedula en este gimnasio
         const existingClient = await getClientByCedula(cedula, Number(gym_id_token));
         if (existingClient) {
-            return res.status(400).json({ error: "Ya existe un cliente registrado con esta cédula" });
+            return res.status(400).json({ message: "Ya existe un cliente registrado con esta cédula" });
         }
 
         const clientData = { ...req.body, gym_id: gym_id_token };

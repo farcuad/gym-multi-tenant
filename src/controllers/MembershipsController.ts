@@ -16,13 +16,13 @@ export const createMembership = async (req: Request, res: Response) => {
     // Validamos que el cliente no tenga una membresía activa
     const existing = await membershipsExisting(Number(client_id), Number(gym_id_token));
     if (existing) {
-      return res.status(400).json({ error: "El cliente ya tiene una membresía activa" });
+      return res.status(400).json({ message: "El cliente ya tiene una membresía activa" });
     }
 
     const plan = await getPlansByGymId(Number(gym_id_token));
     const planSeleccionado = plan.find((plan) => plan.id === Number(plan_id));
     if (!planSeleccionado) {
-      return res.status(404).json({ error: "El plan seleccionado no existe" });
+      return res.status(404).json({ message: "El plan seleccionado no existe" });
     }
     const [year, month, day] = fecha_inicio.split("-").map(Number);
 
