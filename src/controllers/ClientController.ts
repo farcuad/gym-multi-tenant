@@ -1,10 +1,18 @@
 import type { Request, Response } from "express";
-import { registerClient, getClientsByGymId, getClientById, updateClientById, deleteClientById, alertClientExpired} from "../models/Clients.js";
+import { registerClient, getClientsByGymId, getClientById, updateClientById, deleteClientById, alertClientExpired, getClientByCedula } from "../models/Clients.js";
 import { z } from "zod";
 // funcion para crear un nuevo cliente
 export const createClient = async (req: Request, res: Response) => {
     try {
         const gym_id_token = req.user.gym_id;
+        const { cedula } = req.body;
+
+        // Validamos si el cliente ya existe por cedula en este gimnasio
+        const existingClient = await getClientByCedula(cedula, Number(gym_id_token));
+        if (existingClient) {
+            return res.status(400).json({ error: "Ya existe un cliente registrado con esta cédula" });
+        }
+
         const clientData = { ...req.body, gym_id: gym_id_token };
         const client = await registerClient(clientData);
         res.status(201).json({ message: "Cliente registrado correctamente", client });

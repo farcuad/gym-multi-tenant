@@ -1,5 +1,5 @@
 import type { Request, Response } from "express";
-import { registerMembership, getMembershipByGymId,nenewdMembership, deleteMembership, getMembershipById, getPublicMembershipVerification, } from "../models/Memberships.js";
+import { registerMembership, getMembershipByGymId,nenewdMembership, deleteMembership, getMembershipById, getPublicMembershipVerification, membershipsExisting } from "../models/Memberships.js";
 import { getPlansByGymId } from "../models/Plans.js";
 import { registerPayment } from "../models/Payments.js";
 import type { CreatePaymentDTO } from "../types/Payments.js";
@@ -12,6 +12,13 @@ export const createMembership = async (req: Request, res: Response) => {
     const gym_id_token = req.user.gym_id;
     // Obtenemos los datos de la membresía del cuerpo de la solicitud
     const { client_id, plan_id, fecha_inicio, payment_info } = req.body;
+
+    // Validamos que el cliente no tenga una membresía activa
+    const existing = await membershipsExisting(Number(client_id), Number(gym_id_token));
+    if (existing) {
+      return res.status(400).json({ error: "El cliente ya tiene una membresía activa" });
+    }
+
     const plan = await getPlansByGymId(Number(gym_id_token));
     const planSeleccionado = plan.find((plan) => plan.id === Number(plan_id));
     if (!planSeleccionado) {

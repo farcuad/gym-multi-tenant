@@ -106,3 +106,9 @@ export const alertClientExpired = async ( gymId: number, ): Promise<ClientBody[]
   const result = await query(sql, [gymId]);
   return result.rows;
 };
+
+export const getClientByCedula = async (cedula: string, gym_id: number): Promise<{id: number} | null> => {
+  const sql = "SELECT id FROM clients WHERE cedula = $1 AND gym_id = $2";
+  const result = await query(sql, [cedula, gym_id]);
+  return result.rows[0] || null;
+};

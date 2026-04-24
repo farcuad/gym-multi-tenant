@@ -121,3 +121,9 @@ export const getPublicMembershipVerification = async (membershipId: number) => {
   const result = await query(sql, [membershipId]);
   return result.rows[0] || null;
 };
+
+export const membershipsExisting = async (clientId: number, gymId: number): Promise<{id: number} | null> =>{
+  const sql = `SELECT id FROM memberships WHERE client_id = $1 AND gym_id = $2 AND estado = 'activo'`
+  const result = await query(sql, [clientId, gymId]);
+  return result.rows[0] || null
+}
