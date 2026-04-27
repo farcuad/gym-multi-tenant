@@ -60,3 +60,19 @@ export const GetUserByEmail = async (
   if (result.rows.length === 0) return null;
   return result.rows[0] as UserBase;
 };
+
+//Modelo que permite crear usuarios auxiliares
+export const RegisterUsers = async (gymId: number, data: UserBase) : Promise<UserBase | null> =>{
+  const sql = `INSERT INTO users (gym_id, name, email, password, role) VALUES ($1, $2, $3, $4, $5) RETURNING *`
+  const values = [gymId, data.name, data.email, data.password, data.role]
+  const result = await query(sql, values)
+  if(result.rows.length === 0) return null
+  return result.rows[0] as UserBase
+}
+
+export const getUsersRole = async (gymId: number) : Promise<UserBase[]> =>{
+  const sql = `SELECT id, name, email, role, created_at FROM users WHERE gym_id = $1 AND role != 'admin'`
+  const result = await query(sql, [gymId])
+  if(result.rows.length === 0) return []
+  return result.rows as UserBase[]
+}

@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { loginAdmin, registerAdmin, resetPassword, forgotPassword,} from "../controllers/AuthController.js";
+import { loginAdmin, registerAdmin, resetPassword, forgotPassword, loginClient, registerUsers, getByUsersRole } from "../controllers/AuthController.js";
 import { createClient, fetchClientsByGymId, fetchClientById, updateClient, deleteClient, alertClient,} from "../controllers/ClientController.js";
 import { createMembership, getMembership, renewMembership, deleteMemberships, verifyMembershipStatus,} from "../controllers/MembershipsController.js";
 import { createPlan, fetchPlansByGymId, modifyPlan, removePlan,} from "../controllers/PlansController.js";
@@ -8,12 +8,16 @@ import { getPayments } from "../controllers/PaymentsController.js";
 import { analizarGanancias } from "../controllers/AiController.js";
 import { authToken } from "../middleware/authMiddleware.js";
 import { isAdmin } from "../middleware/isAdmin.js";
+import { isTrainerOrAdmin } from "../middleware/isTrainerOrAdmin.js";
+import { isClient } from "../middleware/isClient.js";
 import { requirePlan } from "../middleware/requirePlan.js";
 import { loadSubscription } from "../middleware/loadSubcription.js";
 import { getSubscription } from "../controllers/SubsCriptionController.js";
 import { getMetricsPayments,getMetricsNewClients, } from "../controllers/MetricasController.js";
 import { getRate } from "../controllers/BcvController.js";
 import { createbotsConfigController, getbotsConfigByIdController, updatebotsConfigByIdController, deletebotsConfigByIdController } from "../controllers/BotConfigController.js";
+import { createExercise, fetchExercises, fetchExerciseById, updateExercise, deleteExercise } from "../controllers/ExerciseController.js";
+import { createRoutine, fetchRoutines, fetchRoutineById, updateRoutine, deleteRoutine, addExercise, removeExercise, assignRoutine, fetchActiveClientRoutine, deactivateRoutine } from "../controllers/RoutineController.js";
 import multer from "multer";
 import path from "path";
 import fs from "fs";
@@ -45,6 +49,7 @@ const upload = multer({
 // Rutas publicas
 router.post("/register", registerAdmin);
 router.post("/login", loginAdmin);
+router.post("/client/login", loginClient);
 // Ruta para obtener los datos de la membresia mediante qr
 
 // Rutas para recuperación de contraseña
@@ -60,6 +65,8 @@ router.put("/plans-admin/:id", isAdmin, updatePlan);
 router.get("/plans-admin/:id/history", isAdmin, getGymHistory);
 
 router.get("/subscriptions", getSubscription);
+router.post("/users", registerUsers);
+router.get("/users", getByUsersRole);
 
 router.use(loadSubscription);
 // Rutas para los clientes
@@ -83,6 +90,29 @@ router.delete("/plans/:id", removePlan);
 router.get("/payments", getPayments);
 router.get("/metrics/payments", getMetricsPayments);
 router.get("/metrics/new-clients", getMetricsNewClients);
+
+// Rutas para ejercicios (La Biblioteca)
+router.post("/exercises", isTrainerOrAdmin, createExercise);
+router.get("/exercises", fetchExercises);
+router.get("/exercises/:id", fetchExerciseById);
+router.put("/exercises/:id", isTrainerOrAdmin, updateExercise);
+router.delete("/exercises/:id", isTrainerOrAdmin, deleteExercise);
+
+// Rutas para rutinas (Cabecera y Detalle)
+router.post("/routines", isTrainerOrAdmin, createRoutine);
+router.get("/routines", fetchRoutines);
+router.get("/routines/:id", fetchRoutineById);
+router.put("/routines/:id", isTrainerOrAdmin, updateRoutine);
+router.delete("/routines/:id", isTrainerOrAdmin, deleteRoutine);
+
+// Rutas para los ejercicios dentro de una rutina
+router.post("/routines/:routineId/exercises", isTrainerOrAdmin, addExercise);
+router.delete("/routines/exercises/:id", isTrainerOrAdmin, removeExercise);
+
+// Rutas para asignación de rutinas a clientes
+router.post("/client-routines", isTrainerOrAdmin, assignRoutine);
+router.get("/client-routines/active/:clientId", isClient, fetchActiveClientRoutine);
+router.put("/client-routines/:id/deactivate", isTrainerOrAdmin, deactivateRoutine);
 // Ruta para geminis
 router.post("/analizar", requirePlan("Medium"), analizarGanancias);
 

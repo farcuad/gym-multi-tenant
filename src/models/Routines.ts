@@ -1,0 +1,142 @@
+import { query } from "../connect/connect.js";
+import { z } from "zod";
+import type { RoutineBody, RoutineExerciseBody, ClientRoutineBody } from "../types/RoutineType.js";
+
+// === ESQUEMAS ZOD ===
+export const createRoutineSchema = z.object({
+  name: z.string().min(3).max(150),
+  description: z.string().optional().nullable(),
+});
+
+export const updateRoutineSchema = createRoutineSchema.partial();
+
+export const routineExerciseSchema = z.object({
+  routine_id: z.number(),
+  exercise_id: z.number(),
+  sets: z.number().int().positive(),
+  reps: z.string(),
+  rest_time_seconds: z.number().int().nonnegative().optional().default(60),
+  sort_order: z.number().int().nonnegative(),
+});
+
+export const clientRoutineSchema = z.object({
+  client_id: z.number(),
+  routine_id: z.number(),
+  start_date: z.string().optional(),
+  end_date: z.string().optional().nullable(),
+  is_active: z.boolean().optional().default(true),
+});
+
+// === RUTINAS (CABECERA) ===
+
+// Crear una Rutina
+export const registerRoutine = async (gymId: number, trainerId: number | null, data: unknown): Promise<RoutineBody> => {
+  const validatedData = createRoutineSchema.parse(data);
+  const sql = "INSERT INTO routines (gym_id, trainer_id, name, description) VALUES ($1, $2, $3, $4) RETURNING *";
+  const result = await query(sql, [gymId, trainerId, validatedData.name, validatedData.description || null]);
+  return result.rows[0];
+};
+
+// Obtener todas las rutinas del gimnasio
+export const getRoutinesByGymId = async (gymId: number): Promise<RoutineBody[]> => {
+  const sql = "SELECT * FROM routines WHERE gym_id = $1 ORDER BY id DESC";
+  const result = await query(sql, [gymId]);
+  return result.rows;
+};
+
+// Obtener rutina por ID
+export const getRoutineById = async (id: number, gymId: number): Promise<RoutineBody | null> => {
+  const sql = "SELECT * FROM routines WHERE id = $1 AND gym_id = $2";
+  const result = await query(sql, [id, gymId]);
+  if (result.rows.length === 0) return null;
+  return result.rows[0];
+};
+
+// Actualizar Rutina
+export const updateRoutineById = async (id: number, gymId: number, data: unknown): Promise<RoutineBody | null> => {
+  const validateData = updateRoutineSchema.parse(data);
+  const fields = Object.keys(validateData);
+  const values = Object.values(validateData);
+  
+  if (fields.length === 0) return null;
+
+  const setString = fields.map((field, index) => `${field} = $${index + 1}`).join(", ");
+  const sql = `UPDATE routines SET ${setString} WHERE id = $${fields.length + 1} AND gym_id = $${fields.length + 2} RETURNING *`;
+  
+  const result = await query(sql, [...values, id, gymId]);
+  if (result.rows.length === 0) return null;
+  return result.rows[0];
+};
+
+// Eliminar Rutina
+export const deleteRoutineById = async (id: number, gymId: number): Promise<boolean> => {
+  const sql = "DELETE FROM routines WHERE id = $1 AND gym_id = $2";
+  const result = await query(sql, [id, gymId]);
+  return (result.rowCount ?? 0) > 0;
+};
+
+// === EJERCICIOS DE LA RUTINA (DETALLE) ===
+
+// Agregar ejercicio a una rutina
+export const addExerciseToRoutine = async (gymId: number, data: unknown): Promise<RoutineExerciseBody> => {
+  const validatedData = routineExerciseSchema.parse(data);
+  const sql = `INSERT INTO routine_exercises (gym_id, routine_id, exercise_id, sets, reps, rest_time_seconds, sort_order) 
+               VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *`;
+  const values = [gymId, validatedData.routine_id, validatedData.exercise_id, validatedData.sets, validatedData.reps, validatedData.rest_time_seconds, validatedData.sort_order];
+  const result = await query(sql, values);
+  return result.rows[0];
+};
+
+// Obtener todos los ejercicios de una rutina
+export const getExercisesByRoutineId = async (routineId: number, gymId: number): Promise<any[]> => {
+  const sql = `
+    SELECT re.*, e.name as exercise_name, e.muscle_group 
+    FROM routine_exercises re
+    JOIN exercises e ON re.exercise_id = e.id
+    WHERE re.routine_id = $1 AND re.gym_id = $2
+    ORDER BY re.sort_order ASC
+  `;
+  const result = await query(sql, [routineId, gymId]);
+  return result.rows;
+};
+
+// Eliminar ejercicio de la rutina
+export const removeExerciseFromRoutine = async (id: number, gymId: number): Promise<boolean> => {
+  const sql = "DELETE FROM routine_exercises WHERE id = $1 AND gym_id = $2";
+  const result = await query(sql, [id, gymId]);
+  return (result.rowCount ?? 0) > 0;
+};
+
+// === ASIGNACION A CLIENTES ===
+
+// Asignar rutina a cliente
+export const assignRoutineToClient = async (gymId: number, data: unknown): Promise<ClientRoutineBody> => {
+  const validatedData = clientRoutineSchema.parse(data);
+  const startDate = validatedData.start_date || new Date().toISOString().slice(0, 10);
+  
+  // Desactivar rutinas previas del cliente para este gym
+  await query("UPDATE client_routines SET is_active = FALSE WHERE client_id = $1 AND gym_id = $2", [validatedData.client_id, gymId]);
+
+  const sql = `INSERT INTO client_routines (gym_id, client_id, routine_id, start_date, end_date, is_active) 
+               VALUES ($1, $2, $3, $4, $5, $6) RETURNING *`;
+  const values = [gymId, validatedData.client_id, validatedData.routine_id, startDate, validatedData.end_date || null, validatedData.is_active];
+  
+  const result = await query(sql, values);
+  return result.rows[0];
+};
+
+// Obtener rutina activa del cliente
+export const getActiveRoutineByClientId = async (clientId: number, gymId: number): Promise<ClientRoutineBody | null> => {
+  const sql = "SELECT * FROM client_routines WHERE client_id = $1 AND gym_id = $2 AND is_active = TRUE ORDER BY id DESC LIMIT 1";
+  const result = await query(sql, [clientId, gymId]);
+  if (result.rows.length === 0) return null;
+  return result.rows[0];
+};
+
+// Desactivar rutina del cliente
+export const deactivateClientRoutine = async (id: number, gymId: number): Promise<ClientRoutineBody | null> => {
+  const sql = "UPDATE client_routines SET is_active = FALSE WHERE id = $1 AND gym_id = $2 RETURNING *";
+  const result = await query(sql, [id, gymId]);
+  if (result.rows.length === 0) return null;
+  return result.rows[0];
+};

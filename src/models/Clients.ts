@@ -112,3 +112,14 @@ export const getClientByCedula = async (cedula: string, gym_id: number): Promise
   const result = await query(sql, [cedula, gym_id]);
   return result.rows[0] || null;
 };
+
+export const getClientForLogin = async (cedula: string, gym_id?: number) => {
+  let sql = "SELECT id, gym_id, name, cedula, activo FROM clients WHERE cedula = $1";
+  const params: any[] = [cedula];
+  if (gym_id) {
+    sql += " AND gym_id = $2";
+    params.push(gym_id);
+  }
+  const result = await query(sql, params);
+  return result.rows;
+};

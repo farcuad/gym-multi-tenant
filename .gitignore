@@ -4,3 +4,4 @@ node_modules/
 carnets/
 temp_audio/
 .env
+API_ROUTINES_DOCS.md

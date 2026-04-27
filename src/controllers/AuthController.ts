@@ -1,7 +1,8 @@
 import type { Request, Response } from "express";
 import bycrypt from "bcrypt";
-import { GetUserByEmail, RegisterAdmin } from "../models/Auth.js";
+import { GetUserByEmail, RegisterAdmin, RegisterUsers, getUsersRole } from "../models/Auth.js";
 import { savePassword, getPassword, updatePassword } from "../models/Admin.js";
+import { getClientForLogin } from "../models/Clients.js";
 import { generateToken } from "../utils/jwt.js";
 import { transporter } from "../utils/mailer.js";
 import type { UserRole, TokenPayload } from "../types/AuthType.js";
@@ -17,7 +18,7 @@ export const registerAdmin = async (req: Request, res: Response) => {
     const hashedPassword = await bycrypt.hash(password, 10);
     const userData = {
       ...req.body,
-      role: "gym_owner",
+      role: "admin",
       password: hashedPassword,
     };
     // Registrar el admin
@@ -162,4 +163,98 @@ export const resetPassword = async (req: Request, res: Response) => {
   // Actualizamos la contraseña
   await updatePassword((user as any).id, hashedPassword);
   res.json({ message: "Contraseña actualizada correctamente" });
+};
+
+
+export const registerUsers = async (req: Request, res: Response) => {
+  try {
+    const gym_id = req.user.gym_id;
+    // Extraer datos del cuerpo de la solicitud
+    const { email, password, role } = req.body;
+    const existingUser = await GetUserByEmail(email);
+    if (existingUser) {
+      return res.status(409).json({ error: "El correo ya está registrado" });
+    }
+    // Hashear la contraseña
+    const hashedPassword = await bycrypt.hash(password, 10);
+    const userData = {
+      ...req.body,
+      role: role,
+      password: hashedPassword,
+    };
+    // Registrar el usuario
+    const newUser = await RegisterUsers(gym_id, userData);
+    if (!newUser) {
+      return res.status(500).json({ error: "Error al crear el usuario en la base de datos" });
+    }
+    // Enviamos respuesta exitosa
+    const { password: _, ...user } = newUser;
+    res.status(201).json({ message: "Usuario registrado correctamente", user: user });
+  } catch (error) {
+    return res.status(400).json({ error: (error as Error).message });
+  }
+};
+
+export const getByUsersRole = async (req: Request, res: Response) =>{
+  try {
+    const gym_id = req.user.gym_id
+    const users = await getUsersRole(gym_id)
+    if (!users) {
+      return res.status(404).json({ error: "Usuarios no encontrados" });
+    }
+    res.status(200).json({ message: "Usuarios obtenidos correctamente", users})
+  } catch (error) {
+    return res.status(400).json({ error: (error as Error).message });
+  }
+}
+
+export const loginClient = async (req: Request, res: Response) => {
+  try {
+    const { cedula, gym_id } = req.body;
+    if (!cedula) {
+      return res.status(400).json({ error: "La cédula es requerida" });
+    }
+
+    const clients = await getClientForLogin(cedula, gym_id);
+
+    if (clients.length === 0) {
+      return res.status(404).json({ error: "Cliente no encontrado" });
+    }
+
+    if (clients.length > 1 && !gym_id) {
+      return res.status(400).json({ 
+        error: "Múltiples cuentas encontradas. Por favor especifique el gimnasio.",
+        gyms: clients.map(c => c.gym_id) 
+      });
+    }
+
+    const client = clients[0];
+
+    if (!client.activo) {
+      return res.status(403).json({ error: "La cuenta del cliente está inactiva" });
+    }
+
+    const userPayload: TokenPayload = {
+      id: client.id,
+      gym_id: client.gym_id,
+      role: "client" as UserRole,
+      plan_type: "client", // Valor por defecto para clientes
+    };
+
+    const token = generateToken(userPayload);
+
+    res.status(200).json({ 
+      message: "Inicio de sesión exitoso", 
+      token, 
+      user: {
+        id: client.id,
+        gym_id: client.gym_id,
+        name: client.name,
+        cedula: client.cedula,
+        role: "client"
+      } 
+    });
+  } catch (error) {
+    return res.status(500).json({ error: (error as Error).message });
+  }
 };
