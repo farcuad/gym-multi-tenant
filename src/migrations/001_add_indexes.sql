@@ -88,6 +88,9 @@ CREATE TABLE client_routines (
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
+ALTER TABLE routine_exercises 
+ADD COLUMN day_of_week INTEGER CHECK (day_of_week BETWEEN 1 AND 7)
+
 -- Indices para optimizar las consultas comunes
 CREATE INDEX idx_routine_exercises_routine ON routine_exercises(routine_id);
 CREATE INDEX idx_client_routines_client ON client_routines(client_id);

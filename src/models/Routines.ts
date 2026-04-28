@@ -17,6 +17,7 @@ export const routineExerciseSchema = z.object({
   reps: z.string(),
   rest_time_seconds: z.number().int().nonnegative().optional().default(60),
   sort_order: z.number().int().nonnegative(),
+  day_of_week: z.number().int().min(1).max(7),
 });
 
 export const clientRoutineSchema = z.object({
@@ -80,23 +81,41 @@ export const deleteRoutineById = async (id: number, gymId: number): Promise<bool
 // Agregar ejercicio a una rutina
 export const addExerciseToRoutine = async (gymId: number, data: unknown): Promise<RoutineExerciseBody> => {
   const validatedData = routineExerciseSchema.parse(data);
-  const sql = `INSERT INTO routine_exercises (gym_id, routine_id, exercise_id, sets, reps, rest_time_seconds, sort_order) 
-               VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *`;
-  const values = [gymId, validatedData.routine_id, validatedData.exercise_id, validatedData.sets, validatedData.reps, validatedData.rest_time_seconds, validatedData.sort_order];
+  const sql = `INSERT INTO routine_exercises (gym_id, routine_id, exercise_id, sets, reps, rest_time_seconds, sort_order, day_of_week) 
+               VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *`;
+  const values = [
+    gymId, 
+    validatedData.routine_id, 
+    validatedData.exercise_id, 
+    validatedData.sets, 
+    validatedData.reps, 
+    validatedData.rest_time_seconds, 
+    validatedData.sort_order,
+    validatedData.day_of_week
+  ];
   const result = await query(sql, values);
   return result.rows[0];
 };
 
 // Obtener todos los ejercicios de una rutina
-export const getExercisesByRoutineId = async (routineId: number, gymId: number): Promise<any[]> => {
-  const sql = `
+export const getExercisesByRoutineId = async (routineId: number, gymId: number, dayOfWeek?: number): Promise<any[]> => {
+  let sql = `
     SELECT re.*, e.name as exercise_name, e.muscle_group 
     FROM routine_exercises re
     JOIN exercises e ON re.exercise_id = e.id
     WHERE re.routine_id = $1 AND re.gym_id = $2
-    ORDER BY re.sort_order ASC
   `;
-  const result = await query(sql, [routineId, gymId]);
+  
+  const values: any[] = [routineId, gymId];
+  
+  if (dayOfWeek) {
+    sql += " AND re.day_of_week = $3";
+    values.push(dayOfWeek);
+  }
+  
+  sql += " ORDER BY re.sort_order ASC";
+  
+  const result = await query(sql, values);
   return result.rows;
 };
 

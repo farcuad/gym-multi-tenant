@@ -129,15 +129,20 @@ export const fetchActiveClientRoutine = async (req: Request, res: Response) => {
     
     // El middleware isClient ya garantiza que el rol es 'client'
     if (req.user.id !== client_id) {
-        return res.status(403).json({ error: "Acceso denegado. Solo puedes consultar tu propia rutina activa." });
+        return res.status(403).json({ message: "Acceso denegado. Solo puedes consultar tu propia rutina activa." });
     }
     
     const activeAssignment = await getActiveRoutineByClientId(client_id, Number(gym_id));
-    if (!activeAssignment) return res.status(404).json({ error: "No tienes una rutina activa asignada actualmente." });
+    if (!activeAssignment) return res.status(404).json({ message: "No tienes una rutina activa asignada actualmente." });
     
-    // Buscamos la cabecera de la rutina y sus ejercicios detallados
+    // Buscamos la cabecera de la rutina y sus ejercicios detallados del día actual
     const routineHeader = await getRoutineById(activeAssignment.routine_id, Number(gym_id));
-    const exercises = await getExercisesByRoutineId(activeAssignment.routine_id, Number(gym_id));
+    
+    // Calculamos el día de la semana actual (1 = Lunes, 7 = Domingo)
+    const day = new Date().getDay(); 
+    const dayOfWeek = day === 0 ? 7 : day; 
+
+    const exercises = await getExercisesByRoutineId(activeAssignment.routine_id, Number(gym_id), dayOfWeek);
 
     res.status(200).json({ 
       message: "Tu rutina activa ha sido obtenida", 

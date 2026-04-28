@@ -16,6 +16,7 @@ export interface RoutineExerciseBody {
   reps: string;
   rest_time_seconds: number;
   sort_order: number;
+  day_of_week: number;
   created_at: Date;
 }
 
