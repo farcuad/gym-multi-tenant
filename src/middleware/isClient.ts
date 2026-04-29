@@ -2,7 +2,7 @@ import type { Request, Response, NextFunction } from "express";
 
 export const isClient = (req: Request, res: Response, next: NextFunction) => {
     // Verificamos si el usuario tiene el rol exclusivo de cliente
-    if(req.user && (req.user.role === "client" || req.user.role === "trainer" || req.user.role === "admin" )) {
+    if(req.user && req.user.role === "client") {
         return next();
     }
 

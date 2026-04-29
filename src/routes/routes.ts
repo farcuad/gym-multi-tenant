@@ -17,7 +17,7 @@ import { getMetricsPayments,getMetricsNewClients, } from "../controllers/Metrica
 import { getRate } from "../controllers/BcvController.js";
 import { createbotsConfigController, getbotsConfigByIdController, updatebotsConfigByIdController, deletebotsConfigByIdController } from "../controllers/BotConfigController.js";
 import { createExercise, fetchExercises, fetchExerciseById, updateExercise, deleteExercise } from "../controllers/ExerciseController.js";
-import { createRoutine, fetchRoutines, fetchRoutineById, updateRoutine, deleteRoutine, addExercise, removeExercise, assignRoutine, fetchActiveClientRoutine, deactivateRoutine } from "../controllers/RoutineController.js";
+import { createRoutine, fetchRoutines, fetchRoutineById, updateRoutine, deleteRoutine, addExercise, removeExercise, assignRoutine, fetchActiveClientRoutine, deactivateRoutine, fetchClientRoutines } from "../controllers/RoutineController.js";
 import multer from "multer";
 import path from "path";
 import fs from "fs";
@@ -111,6 +111,7 @@ router.delete("/routines/exercises/:id", isTrainerOrAdmin, removeExercise);
 
 // Rutas para asignación de rutinas a clientes
 router.post("/client-routines", isTrainerOrAdmin, assignRoutine);
+router.get("/client-routines/:clientId", isTrainerOrAdmin, fetchClientRoutines);
 router.get("/client-routines/active/:clientId", isClient, fetchActiveClientRoutine);
 router.put("/client-routines/:id/deactivate", isTrainerOrAdmin, deactivateRoutine);
 // Ruta para geminis

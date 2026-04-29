@@ -159,3 +159,17 @@ export const deactivateClientRoutine = async (id: number, gymId: number): Promis
   if (result.rows.length === 0) return null;
   return result.rows[0];
 };
+
+// Obtener todas las rutinas asignadas a un cliente (historial)
+export const getClientRoutines = async (clientId: number, gymId: number): Promise<any[]> => {
+  const sql = `
+    SELECT cr.*, r.name as routine_name, r.description as routine_description
+    FROM client_routines cr
+    JOIN routines r ON cr.routine_id = r.id
+    WHERE cr.client_id = $1 AND cr.gym_id = $2
+    ORDER BY cr.is_active DESC, cr.created_at DESC
+  `;
+  const result = await query(sql, [clientId, gymId]);
+  return result.rows;
+};
+

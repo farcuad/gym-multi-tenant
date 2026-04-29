@@ -2,7 +2,7 @@ import type { Request, Response } from "express";
 import { z } from "zod";
 import { registerRoutine, getRoutinesByGymId, getRoutineById, updateRoutineById, 
   deleteRoutineById, addExerciseToRoutine,getExercisesByRoutineId, removeExerciseFromRoutine,
-  assignRoutineToClient,getActiveRoutineByClientId,deactivateClientRoutine } from "../models/Routines.js";
+  assignRoutineToClient,getActiveRoutineByClientId,deactivateClientRoutine, getClientRoutines } from "../models/Routines.js";
 
 // === RUTINAS ===
 
@@ -170,3 +170,28 @@ export const deactivateRoutine = async (req: Request, res: Response) => {
     res.status(500).json({ error: "Error interno" });
   }
 };
+
+export const fetchClientRoutines = async (req: Request, res: Response) => {
+  try {
+    const gym_id = req.user.gym_id;
+    const client_id = Number(req.params.clientId);
+    
+    const assignments = await getClientRoutines(client_id, Number(gym_id));
+    
+    // También buscamos los ejercicios de la rutina que esté activa para facilitar la vista
+    const activeAssignment = assignments.find(a => a.is_active);
+    let activeExercises = [];
+    if (activeAssignment) {
+      activeExercises = await getExercisesByRoutineId(activeAssignment.routine_id, Number(gym_id));
+    }
+
+    res.status(200).json({ 
+      message: "Rutinas del cliente obtenidas", 
+      assignments,
+      activeExercises 
+    });
+  } catch (error) {
+    res.status(500).json({ error: "Error interno al obtener las rutinas del cliente" });
+  }
+};
+
