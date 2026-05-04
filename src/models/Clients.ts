@@ -114,7 +114,7 @@ export const getClientByCedula = async (cedula: string, gym_id: number): Promise
 };
 
 export const getClientForLogin = async (cedula: string, gym_id?: number) => {
-  let sql = "SELECT id, gym_id, name, cedula, activo FROM clients WHERE cedula = $1";
+  let sql = "SELECT c.id, c.gym_id, c.name, c.cedula, c.activo, g.name_gym FROM clients c LEFT JOIN gyms g ON c.gym_id = g.id WHERE c.cedula = $1";
   const params: any[] = [cedula];
   if (gym_id) {
     sql += " AND gym_id = $2";

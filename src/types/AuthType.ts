@@ -25,4 +25,5 @@ export interface TokenPayload {
   gym_id: number;
   role: UserRole;
   plan_type: string;
+  name_gym: string;
 }

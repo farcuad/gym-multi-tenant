@@ -85,6 +85,7 @@ CREATE TABLE client_routines (
     start_date DATE DEFAULT CURRENT_DATE,
     end_date DATE,
     is_active BOOLEAN DEFAULT TRUE,
+    day_of_week INTEGER CHECK (day_of_week BETWEEN 1 AND 7),
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 

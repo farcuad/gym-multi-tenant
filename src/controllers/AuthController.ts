@@ -84,6 +84,7 @@ export const loginAdmin = async (req: Request, res: Response) => {
       gym_id: existingUser.gym_id,
       role: existingUser.role as UserRole,
       plan_type: existingUser.plan_type,
+      name_gym: (existingUser as any).name_gym,
     };
     const token = generateToken(userPayload);
     res
@@ -239,6 +240,7 @@ export const loginClient = async (req: Request, res: Response) => {
       gym_id: client.gym_id,
       role: "client" as UserRole,
       plan_type: "client", // Valor por defecto para clientes
+      name_gym: (client as any).name_gym
     };
 
     const token = generateToken(userPayload);
@@ -251,6 +253,7 @@ export const loginClient = async (req: Request, res: Response) => {
         gym_id: client.gym_id,
         name: client.name,
         cedula: client.cedula,
+        name_gym: (client as any).name_gym,
         role: "client"
       } 
     });

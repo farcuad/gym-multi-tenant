@@ -26,6 +26,7 @@ export const clientRoutineSchema = z.object({
   start_date: z.string().optional(),
   end_date: z.string().optional().nullable(),
   is_active: z.boolean().optional().default(true),
+  day_of_week: z.number().int().min(1).max(7).optional(),
 });
 
 // === RUTINAS (CABECERA) ===
@@ -133,21 +134,49 @@ export const assignRoutineToClient = async (gymId: number, data: unknown): Promi
   const validatedData = clientRoutineSchema.parse(data);
   const startDate = validatedData.start_date || new Date().toISOString().slice(0, 10);
   
-  // Desactivar rutinas previas del cliente para este gym
-  await query("UPDATE client_routines SET is_active = FALSE WHERE client_id = $1 AND gym_id = $2", [validatedData.client_id, gymId]);
+  // Si se especifica un día, desactivamos solo la rutina previa de ese día
+  if (validatedData.day_of_week) {
+    await query(
+      "UPDATE client_routines SET is_active = FALSE WHERE client_id = $1 AND gym_id = $2 AND day_of_week = $3", 
+      [validatedData.client_id, gymId, validatedData.day_of_week]
+    );
+  } else {
+    // Si no hay día (comportamiento antiguo o rutina global), desactivamos todas
+    await query(
+      "UPDATE client_routines SET is_active = FALSE WHERE client_id = $1 AND gym_id = $2", 
+      [validatedData.client_id, gymId]
+    );
+  }
 
-  const sql = `INSERT INTO client_routines (gym_id, client_id, routine_id, start_date, end_date, is_active) 
-               VALUES ($1, $2, $3, $4, $5, $6) RETURNING *`;
-  const values = [gymId, validatedData.client_id, validatedData.routine_id, startDate, validatedData.end_date || null, validatedData.is_active];
+  const sql = `INSERT INTO client_routines (gym_id, client_id, routine_id, start_date, end_date, is_active, day_of_week) 
+               VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *`;
+  const values = [
+    gymId, 
+    validatedData.client_id, 
+    validatedData.routine_id, 
+    startDate, 
+    validatedData.end_date || null, 
+    validatedData.is_active,
+    validatedData.day_of_week || null
+  ];
   
   const result = await query(sql, values);
   return result.rows[0];
 };
 
 // Obtener rutina activa del cliente
-export const getActiveRoutineByClientId = async (clientId: number, gymId: number): Promise<ClientRoutineBody | null> => {
-  const sql = "SELECT * FROM client_routines WHERE client_id = $1 AND gym_id = $2 AND is_active = TRUE ORDER BY id DESC LIMIT 1";
-  const result = await query(sql, [clientId, gymId]);
+export const getActiveRoutineByClientId = async (clientId: number, gymId: number, dayOfWeek?: number): Promise<ClientRoutineBody | null> => {
+  let sql = "SELECT * FROM client_routines WHERE client_id = $1 AND gym_id = $2 AND is_active = TRUE";
+  const params: any[] = [clientId, gymId];
+
+  if (dayOfWeek) {
+    sql += " AND (day_of_week = $3 OR day_of_week IS NULL)";
+    params.push(dayOfWeek);
+  }
+
+  sql += " ORDER BY day_of_week DESC NULLS LAST, id DESC LIMIT 1";
+  
+  const result = await query(sql, params);
   if (result.rows.length === 0) return null;
   return result.rows[0];
 };

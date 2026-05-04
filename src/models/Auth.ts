@@ -55,7 +55,7 @@ export const RegisterAdmin = async (data: UserBase): Promise<UserBase> => {
 export const GetUserByEmail = async (
   email: string,
 ): Promise<UserBase | null> => {
-  const sql = `SELECT u.*, s.plan_type FROM users u LEFT JOIN gym_subscriptions s ON u.gym_id = s.gym_id WHERE u.email = $1`;
+  const sql = `SELECT u.*, s.plan_type, g.name_gym FROM users u LEFT JOIN gym_subscriptions s ON u.gym_id = s.gym_id LEFT JOIN gyms g ON u.gym_id = g.id WHERE u.email = $1`;
   const result = await query(sql, [email]);
   if (result.rows.length === 0) return null;
   return result.rows[0] as UserBase;

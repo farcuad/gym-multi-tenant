@@ -132,24 +132,28 @@ export const fetchActiveClientRoutine = async (req: Request, res: Response) => {
         return res.status(403).json({ message: "Acceso denegado. Solo puedes consultar tu propia rutina activa." });
     }
     
-    const activeAssignment = await getActiveRoutineByClientId(client_id, Number(gym_id));
-    if (!activeAssignment) return res.status(404).json({ message: "No tienes una rutina activa asignada actualmente." });
-    
-    // Buscamos la cabecera de la rutina y sus ejercicios detallados del día actual
-    const routineHeader = await getRoutineById(activeAssignment.routine_id, Number(gym_id));
-    
     // Calculamos el día de la semana actual (1 = Lunes, 7 = Domingo)
     const day = new Date().getDay(); 
     const dayOfWeek = day === 0 ? 7 : day; 
 
+    const activeAssignment = await getActiveRoutineByClientId(client_id, Number(gym_id), dayOfWeek);
+    if (!activeAssignment) return res.status(404).json({ message: "No tienes una rutina asignada para el día de hoy." });
+    
+    // Buscamos la cabecera de la rutina
+    const routineHeader = await getRoutineById(activeAssignment.routine_id, Number(gym_id));
+    
+    // Obtenemos los ejercicios. 
+    // Si la rutina tiene ejercicios específicos por día (en routine_exercises), los filtramos.
+    // Si no, traemos todos los de esa rutina.
     const exercises = await getExercisesByRoutineId(activeAssignment.routine_id, Number(gym_id), dayOfWeek);
+    const finalExercises = exercises.length > 0 ? exercises : await getExercisesByRoutineId(activeAssignment.routine_id, Number(gym_id));
 
     res.status(200).json({ 
       message: "Tu rutina activa ha sido obtenida", 
       assignment: activeAssignment,
       routine: {
         ...routineHeader,
-        exercises
+        exercises: finalExercises
       } 
     });
   } catch (error) {
