@@ -9,5 +9,5 @@ export const getSubscriptions = async (gymId: number) => {
         LIMIT 1
     `;
     const result = await query(sql, [gymId]);
-    return result.rows[0];
+    return result.rows; // Devolvemos el arreglo para que .find() y [0] funcionen
 };
