@@ -181,18 +181,10 @@ export const fetchClientRoutines = async (req: Request, res: Response) => {
     const client_id = Number(req.params.clientId);
     
     const assignments = await getClientRoutines(client_id, Number(gym_id));
-    
-    // También buscamos los ejercicios de la rutina que esté activa para facilitar la vista
-    const activeAssignment = assignments.find(a => a.is_active);
-    let activeExercises = [];
-    if (activeAssignment) {
-      activeExercises = await getExercisesByRoutineId(activeAssignment.routine_id, Number(gym_id));
-    }
 
     res.status(200).json({ 
       message: "Rutinas del cliente obtenidas", 
-      assignments,
-      activeExercises 
+      assignments
     });
   } catch (error) {
     res.status(500).json({ error: "Error interno al obtener las rutinas del cliente" });
