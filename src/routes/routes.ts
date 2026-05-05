@@ -119,7 +119,7 @@ router.delete("/routines/exercises/:id", isTrainerOrAdmin, removeExercise);
 
 // Rutas para asignación de rutinas a clientes
 router.post("/client-routines", isTrainerOrAdmin, assignRoutine);
-router.get("/client-routines/:clientId", isTrainerOrAdmin, fetchClientRoutines);
+router.get("/client-routines/:clientId", fetchClientRoutines);
 router.get("/client-routines/active/:clientId", isClient, fetchActiveClientRoutine);
 router.put("/client-routines/:id/deactivate", isTrainerOrAdmin, deactivateRoutine);
 // Ruta para geminis
