@@ -8,17 +8,13 @@ export const loadSubscription = async ( req: Request, res: Response, next: NextF
     return next();
   }
 
-  const subscription = await getSubscriptions(req.user.gym_id);
+  const subscriptions = await getSubscriptions(req.user.gym_id);
+  const subscription = subscriptions.find((sub: any) => 
+    (sub.status === 'active' || sub.status === 'trialing') && !sub.is_expired
+  );
 
   if (!subscription) {
-    return res.status(403).json({ message: "Subscripcion no encontrada" });
-  }
-
-  if (subscription.is_expired) {
-    return res.status(403).json({
-      code: "SUBSCRIPTION_EXPIRED",
-      message: "Tu periodo de prueba o suscripción ha vencido.",
-    });
+    return res.status(403).json({ message: "Subscripcion no encontrada o expirada" });
   }
   req.subscription = subscription;
   next();
