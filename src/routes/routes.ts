@@ -91,6 +91,14 @@ router.get("/payments", getPayments);
 router.get("/metrics/payments", getMetricsPayments);
 router.get("/metrics/new-clients", getMetricsNewClients);
 
+// Rutas para la configuracion del bot
+router.post("/bot-config", createbotsConfigController);
+router.get("/bot-config", getbotsConfigByIdController);
+router.put("/bot-config/:id", updatebotsConfigByIdController);
+router.delete("/bot-config/:id", deletebotsConfigByIdController);
+
+router.use(requirePlan("Medium"));
+
 // Rutas para ejercicios (La Biblioteca)
 router.post("/exercises", isTrainerOrAdmin, createExercise);
 router.get("/exercises", fetchExercises);
@@ -115,13 +123,9 @@ router.get("/client-routines/:clientId", isTrainerOrAdmin, fetchClientRoutines);
 router.get("/client-routines/active/:clientId", isClient, fetchActiveClientRoutine);
 router.put("/client-routines/:id/deactivate", isTrainerOrAdmin, deactivateRoutine);
 // Ruta para geminis
-router.post("/analizar", requirePlan("Medium"), analizarGanancias);
+router.post("/analizar", analizarGanancias);
 
-// Rutas para la configuracion del bot
-router.post("/bot-config", createbotsConfigController);
-router.get("/bot-config", getbotsConfigByIdController);
-router.put("/bot-config/:id", updatebotsConfigByIdController);
-router.delete("/bot-config/:id", deletebotsConfigByIdController);
+
 
 //router.post("/rutinas", requirePlan("Premiun") , analizarGanancias);
 export default router;

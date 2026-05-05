@@ -2,11 +2,12 @@ import { query } from "../connect/connect.js";
 
 export const getSubscriptions = async (gymId: number) => {
     const sql = `
-        SELECT plan_type, status, start_date, end_date
+        SELECT *, (end_date < (CURRENT_DATE AT TIME ZONE 'UTC' AT TIME ZONE 'America/Caracas')::date) as is_expired
         FROM gym_subscriptions
-        WHERE gym_id = $1
+        WHERE gym_id = $1 AND status IN ('active', 'trialing')
         ORDER BY end_date DESC
+        LIMIT 1
     `;
     const result = await query(sql, [gymId]);
-    return result.rows;
+    return result.rows[0];
 };
