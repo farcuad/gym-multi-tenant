@@ -72,12 +72,12 @@ export const createMembership = async (req: Request, res: Response) => {
     );
     hoyCaracas.setHours(0, 0, 0, 0);
 
-    const activeSub = subscription.find((sub: any) => {
-      const expDate = new Date(sub.end_date);
-      return sub.status === "active" && expDate >= hoyCaracas;
-    });
+    const activeSub = subscription.find((sub: any) => 
+      (sub.status === "active" || sub.status === "trialing") && !sub.is_expired
+    );
 
-    if (activeSub?.plan_type === "Medium") {
+    const allowedPlans = ["Medium", "Premium", "Premiun"];
+    if (activeSub && allowedPlans.includes(activeSub.plan_type)) {
       sendMembershipNotification({
         client_id: Number(client_id),
         gym_id: Number(gym_id_token),
@@ -226,12 +226,12 @@ export const renewMembership = async (req: Request, res: Response) => {
     );
     hoyCaracas.setHours(0, 0, 0, 0);
 
-    const activeSub = subscription.find((sub: any) => {
-      const expDate = new Date(sub.end_date);
-      return sub.status === "active" && expDate >= hoyCaracas;
-    });
+    const activeSub = subscription.find((sub: any) => 
+      (sub.status === "active" || sub.status === "trialing") && !sub.is_expired
+    );
 
-    if (activeSub?.plan_type === "Medium") {
+    const allowedPlans = ["Medium", "Premium", "Premiun"];
+    if (activeSub && allowedPlans.includes(activeSub.plan_type)) {
       sendMembershipNotification({
         client_id: membership.client_id, // Usamos el ID que ya teníamos de la membresía anterior
         gym_id: gym_id,
