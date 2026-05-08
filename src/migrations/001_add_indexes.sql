@@ -92,6 +92,22 @@ CREATE TABLE client_routines (
 ALTER TABLE routine_exercises 
 ADD COLUMN day_of_week INTEGER CHECK (day_of_week BETWEEN 1 AND 7)
 
+
+ALTER TABLE client_routines 
+ADD COLUMN day_of_week INTEGER CHECK (day_of_week BETWEEN 1 AND 7)
+
+CREATE TABLE app_config (
+  id SERIAL PRIMARY KEY,
+  gym_id INTEGER REFERENCES gyms(id) ON DELETE CASCADE,
+  platform VARCHAR(50) NOT NULL, -- 'android', 'ios', 'web'
+  download_url TEXT NOT NULL,    -- Aquí va el link directo
+  version_label VARCHAR(20),     -- Ej: 'v1.0.2'
+  is_active BOOLEAN DEFAULT true,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+ALTER TABLE app_config ADD COLUMN gym_id INTEGER REFERENCES gyms(id) ON DELETE CASCADE;
 -- Indices para optimizar las consultas comunes
 CREATE INDEX idx_routine_exercises_routine ON routine_exercises(routine_id);
 CREATE INDEX idx_client_routines_client ON client_routines(client_id);

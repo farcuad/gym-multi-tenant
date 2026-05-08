@@ -17,7 +17,10 @@ import { getMetricsPayments,getMetricsNewClients, } from "../controllers/Metrica
 import { getRate } from "../controllers/BcvController.js";
 import { createbotsConfigController, getbotsConfigByIdController, updatebotsConfigByIdController, deletebotsConfigByIdController } from "../controllers/BotConfigController.js";
 import { createExercise, fetchExercises, fetchExerciseById, updateExercise, deleteExercise } from "../controllers/ExerciseController.js";
-import { createRoutine, fetchRoutines, fetchRoutineById, updateRoutine, deleteRoutine, addExercise, removeExercise, assignRoutine, fetchActiveClientRoutine, deactivateRoutine, fetchClientRoutines } from "../controllers/RoutineController.js";
+import { createRoutine, fetchRoutines, fetchRoutineById, 
+  updateRoutine, deleteRoutine, addExercise, removeExercise, assignRoutine, fetchActiveClientRoutine,
+   deactivateRoutine, fetchClientRoutines } from "../controllers/RoutineController.js";
+import { createConfigAppController, getCongigApp, updatedConfigAppController, deleteConfigController } from "../controllers/AppConfigController.js";
 import multer from "multer";
 import path from "path";
 import fs from "fs";
@@ -125,7 +128,11 @@ router.put("/client-routines/:id/deactivate", isTrainerOrAdmin, deactivateRoutin
 // Ruta para geminis
 router.post("/analizar", analizarGanancias);
 
-
+// Rutas para la configuracion de la app
+router.post("/app-config", createConfigAppController);
+router.get("/app-config", getCongigApp);
+router.put("/app-config/:id", updatedConfigAppController);
+router.delete("/app-config/:id", deleteConfigController);
 
 //router.post("/rutinas", requirePlan("Premiun") , analizarGanancias);
 export default router;
