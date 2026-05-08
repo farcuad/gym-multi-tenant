@@ -21,33 +21,8 @@ import { createRoutine, fetchRoutines, fetchRoutineById,
   updateRoutine, deleteRoutine, addExercise, removeExercise, assignRoutine, fetchActiveClientRoutine,
    deactivateRoutine, fetchClientRoutines } from "../controllers/RoutineController.js";
 import { createConfigAppController, getCongigApp, updatedConfigAppController, deleteConfigController } from "../controllers/AppConfigController.js";
-import multer from "multer";
-import path from "path";
-import fs from "fs";
+import { configApp } from "../middleware/configApp.js";
 const router = Router();
-const uploadDir = path.join(process.cwd(), "temp_audio");
-if (!fs.existsSync(uploadDir)) {
-  fs.mkdirSync(uploadDir, { recursive: true });
-}
-
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, "temp_audio/");
-  },
-  filename: (req, file, cb) => {
-    // Le damos un nombre único para evitar bloqueos de Windows
-    const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
-    cb(
-      null,
-      file.fieldname + "-" + uniqueSuffix + path.extname(file.originalname),
-    );
-  },
-});
-
-const upload = multer({
-  storage: storage,
-  limits: { fileSize: 10 * 1024 * 1024 }, // Límite de 10MB
-});
 
 // Rutas publicas
 router.post("/register", registerAdmin);
@@ -61,6 +36,13 @@ router.post("/admin/password", resetPassword);
 router.get("/bcv-rate", getRate);
 // Middleware para proteger las rutas siguientes
 router.get("/memberships/:id/verify", verifyMembershipStatus);
+
+// Rutas para la configuracion de la app
+router.post("/app-config", configApp, createConfigAppController);
+router.get("/app-config", configApp, getCongigApp);
+router.put("/app-config/:id", configApp, updatedConfigAppController);
+router.delete("/app-config/:id", configApp, deleteConfigController);
+
 router.use(authToken);
 // Rutas para el admin superior
 router.get("/dashboard", isAdmin, getDashboardData);
@@ -128,11 +110,7 @@ router.put("/client-routines/:id/deactivate", isTrainerOrAdmin, deactivateRoutin
 // Ruta para geminis
 router.post("/analizar", analizarGanancias);
 
-// Rutas para la configuracion de la app
-router.post("/app-config", createConfigAppController);
-router.get("/app-config", getCongigApp);
-router.put("/app-config/:id", updatedConfigAppController);
-router.delete("/app-config/:id", deleteConfigController);
+
 
 //router.post("/rutinas", requirePlan("Premiun") , analizarGanancias);
 export default router;
