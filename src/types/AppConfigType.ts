@@ -1,6 +1,5 @@
 export interface AppConfig {
   id: number;   
-  gym_id?: number;
   platform: string;
   download_url: string;
   version_label: string;

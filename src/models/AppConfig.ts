@@ -3,7 +3,6 @@ import { z } from 'zod';
 import type { AppConfig } from '../types/AppConfigType.js';
 const ConfigSchema = z.object({
   id: z.number().optional(),
-  gym_id: z.number().optional(),
   platform: z.string().nonempty("Platform is required"),
   download_url: z.string().url("Invalid URL"),
   version_label: z.string().optional(),
@@ -12,24 +11,24 @@ const ConfigSchema = z.object({
   updated_at: z.coerce.date().optional(),
 });
 
-export const createConfigApp = async (gym_id: number, config: AppConfig): Promise<AppConfig> => {
+export const createConfigApp = async (config: AppConfig): Promise<AppConfig> => {
   const parsed = ConfigSchema.parse(config);
   
   await query("BEGIN");
   try {
-    // Desactivamos la configuración anterior para esta plataforma y este gym
+    // Desactivamos la configuración anterior para esta plataforma
     await query(`
       UPDATE app_config 
       SET is_active = false 
-      WHERE gym_id = $1 AND platform = $2 AND is_active = true
-    `, [gym_id, parsed.platform]);
+      WHERE platform = $1 AND is_active = true
+    `, [parsed.platform]);
 
     // Insertamos la nueva versión como la activa
     const result = await query(`
-      INSERT INTO app_config (gym_id, platform, download_url, version_label, is_active)
-      VALUES ($1, $2, $3, $4, true)
+      INSERT INTO app_config (platform, download_url, version_label, is_active)
+      VALUES ($1, $2, $3, true)
       RETURNING *;
-    `, [gym_id, parsed.platform, parsed.download_url, parsed.version_label]);
+    `, [parsed.platform, parsed.download_url, parsed.version_label]);
     
     await query("COMMIT");
     return result.rows[0];
@@ -40,16 +39,15 @@ export const createConfigApp = async (gym_id: number, config: AppConfig): Promis
 }
 
 
-export const getConfigApp = async (gym_id: number, platform?: string): Promise<AppConfig | null> => {
+export const getConfigApp = async (platform?: string): Promise<AppConfig | null> => {
   let sql = `
     SELECT * FROM app_config 
-    WHERE gym_id = $1 
-    AND is_active = true
+    WHERE is_active = true
   `;
-  const params: any[] = [gym_id];
+  const params: any[] = [];
 
   if (platform) {
-    sql += ` AND platform = $2`;
+    sql += ` AND platform = $1`;
     params.push(platform);
   }
 
@@ -60,19 +58,19 @@ export const getConfigApp = async (gym_id: number, platform?: string): Promise<A
 }
 
 
-export const updatedConfigApp = async (gym_id: number, config: AppConfig): Promise<AppConfig> => {
+export const updatedConfigApp = async (config: AppConfig): Promise<AppConfig> => {
   const parsed = ConfigSchema.parse(config);
   const sql = `UPDATE app_config SET platform = $1, download_url = $2, 
-                version_label = $3, is_active = $4 WHERE id = $5 AND gym_id = $6 RETURNING *;`;
+                version_label = $3, is_active = $4 WHERE id = $5 RETURNING *;`;
   const result = await query(sql, [
-    parsed.platform, parsed.download_url, parsed.version_label, parsed.is_active, parsed.id, gym_id
+    parsed.platform, parsed.download_url, parsed.version_label, parsed.is_active, parsed.id
   ]);
   return result.rows[0];
 }
 
 
-export const deleteConfig = async (gym_id: number, id: number): Promise<AppConfig | null> => {
-  const sql = `DELETE FROM app_config WHERE id = $1 AND gym_id = $2 RETURNING *;`
-  const result = await query(sql, [id, gym_id]);
+export const deleteConfig = async (id: number): Promise<AppConfig | null> => {
+  const sql = `DELETE FROM app_config WHERE id = $1 RETURNING *;`
+  const result = await query(sql, [id]);
   return result.rows[0];
 }
