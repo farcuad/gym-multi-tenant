@@ -6,11 +6,13 @@ export const getAllGymsData = async (): Promise<GymSummary[]> => {
         SELECT DISTINCT ON (g.id)
     g.id,
     g.name_gym,
+    g.timezone,
+    g.phone_prefix,
     u.name as owner_name,
     u.email as owner_email,
-    s.plan_type,
+    s.plan_type as system_plan,
     s.status,
-    s.end_date as expiration_date,
+    s.end_date as expiration,
     -- Calculamos si está vencido o a punto de vencer (menos de 5 días)
     CASE 
         WHEN s.end_date < CURRENT_DATE THEN 'expired'
@@ -20,7 +22,7 @@ export const getAllGymsData = async (): Promise<GymSummary[]> => {
 FROM gyms g
 INNER JOIN users u ON g.id = u.gym_id
 LEFT JOIN gym_subscriptions s ON g.id = s.gym_id
-WHERE u.role = 'gym_owner'
+WHERE u.role = 'admin'
 ORDER BY g.id, s.end_date DESC;
 
     `;
