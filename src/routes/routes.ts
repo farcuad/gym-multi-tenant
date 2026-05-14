@@ -2,6 +2,7 @@ import { Router } from "express";
 import { loginAdmin, registerAdmin, resetPassword, forgotPassword, loginClient, registerUsers, getByUsersRole } from "../controllers/AuthController.js";
 import { createClient, fetchClientsByGymId, fetchClientById, updateClient, deleteClient, alertClient,} from "../controllers/ClientController.js";
 import { createMembership, getMembership, renewMembership, deleteMemberships, verifyMembershipStatus,} from "../controllers/MembershipsController.js";
+import { generateAccessTicket, verifyQrTicket } from "../controllers/AccessController.js";
 import { createPlan, fetchPlansByGymId, modifyPlan, removePlan,} from "../controllers/PlansController.js";
 import { getDashboardData, updatePlan, getGymHistory,} from "../controllers/AdminSuperiorController.js";
 import { getPayments } from "../controllers/PaymentsController.js";
@@ -35,6 +36,7 @@ router.post("/admin/forgot-password", forgotPassword);
 router.post("/admin/password", resetPassword);
 router.get("/bcv-rate", getRate);
 // Middleware para proteger las rutas siguientes
+// Verificación pública de membresía por QR estático (carnet)
 router.get("/memberships/:id/verify", verifyMembershipStatus);
 
 // Rutas para la configuracion de la app
@@ -66,6 +68,11 @@ router.post("/memberships", createMembership);
 router.get("/memberships", getMembership);
 router.post("/memberships/:id/renew", renewMembership);
 router.delete("/memberships/:id", deleteMemberships);
+// QR dinámico: validación por parte del admin (escaneo de QR del cliente)
+router.post("/memberships/:id/verify-qr", verifyQrTicket);
+
+// QR dinámico: generación del ticket por parte del cliente
+router.get("/access/generate-ticket", isClient, generateAccessTicket);
 // Rutas para los planes
 router.post("/plans", createPlan);
 router.get("/plans", fetchPlansByGymId);
