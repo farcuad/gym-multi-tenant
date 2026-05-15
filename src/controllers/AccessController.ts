@@ -72,7 +72,6 @@ export const generateAccessTicket = async (req: Request, res: Response) => {
 
         const token = jwt.sign(payload, JWT_SECRET, {
             expiresIn: QR_TTL_SECONDS,
-            jwtid:     jti,
         });
 
         return res.status(200).json({
