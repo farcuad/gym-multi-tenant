@@ -28,8 +28,7 @@ export const generateAccessTicket = async (req: Request, res: Response) => {
             WHERE client_id = $1
               AND gym_id    = $2
               AND estado    = 'activo'
-              AND (fecha_membresias AT TIME ZONE 'UTC' AT TIME ZONE 'America/Caracas')::date
-                  >= (NOW() AT TIME ZONE 'America/Caracas')::date
+              AND fecha_membresias >= CURRENT_DATE
             LIMIT 1
         `;
         const membershipResult = await query(membershipSql, [userId, gymId]);
@@ -84,9 +83,12 @@ export const generateAccessTicket = async (req: Request, res: Response) => {
                 : 'Token de acceso generado correctamente. Válido por 2 minutos.',
         });
 
-    } catch (error) {
+    } catch (error: any) {
         console.error('❌ Error en generateAccessTicket:', error);
-        return res.status(500).json({ error: 'Error interno al generar el ticket de acceso.' });
+        return res.status(500).json({ 
+            error: 'Error interno al generar el ticket de acceso.',
+            details: error.message 
+        });
     }
 };
 
