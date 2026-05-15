@@ -101,7 +101,7 @@ export const sendMembershipNotification = async (data: NotificationData) => {
                       `Para ingresar al gimnasio, ahora generas tu acceso desde nuestra aplicación:\n\n` +
                       `1️⃣ Descarga la App aquí: https://frontend-gym-topaz.vercel.app/login\n` +
                       `2️⃣ Ingresa con tu número de *Cédula*.\n` +
-                      `3️⃣ Dirígete a la sección *"Mi QR"* para entrar.\n\n` +
+                      `3️⃣ Y descarga la app!.\n\n` +
                       `¡A darle con todo! 💪🔥`;
         }
 
