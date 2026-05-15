@@ -1,15 +1,8 @@
 import { query } from '../connect/connect.js';
 import { getbotsConfigById } from '../models/BotConfig.js';
 import axios from 'axios';
-import fs from 'fs';
-import path from 'path';
-import { fileURLToPath } from 'url';
-import { generarCarnetBuffer } from '../utils/htmlPdf.js';
 import dontenv from 'dotenv';
 dontenv.config();
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
 
 interface NotificationData {
     client_id: number;
@@ -26,13 +19,6 @@ const WHAIBOT_URL = 'https://whaibot.com/api/send-message';
 const WHAIBOT_BOT_ID = process.env.WHAIBOT_BOT_ID || '';
 const WHAIBOT_CLIENT_KEY = process.env.WHAIBOT_CLIENT_KEY || '';
 const BASE_URL = process.env.BASE_URL || '';
-
-// Carpeta para almacenar carnets temporalmente
-const CARNETS_DIR = path.join(__dirname, '..', '..', 'carnets');
-if (!fs.existsSync(CARNETS_DIR)) {
-    fs.mkdirSync(CARNETS_DIR, { recursive: true });
-    console.log("📁 Carpeta 'carnets' creada automáticamente.");
-}
 
 const sendWhaibot = async (to: string, message: string, botId?: string, apiKey?: string) => {
     const id = botId || WHAIBOT_BOT_ID;
@@ -57,8 +43,6 @@ const sendWhaibot = async (to: string, message: string, botId?: string, apiKey?:
 };
 
 export const sendMembershipNotification = async (data: NotificationData) => {
-    let carnetPath: string | null = null;
-
     try {
         const sql = `
             SELECT c.name, c.phone, c.cedula, g.name_gym 
@@ -113,38 +97,19 @@ export const sendMembershipNotification = async (data: NotificationData) => {
                       `🗓️ *Inicia:* ${fInicio}\n` +
                       `🗓️ *Vence:* ${fFin}\n` +
                       `━━━━━━━━━━━━━━━━━━\n\n` +
-                      `Cualquier duda, estamos a tu disposición. ¡A darle con todo! 💪🔥`;
-
-            // Generar carnet PDF, guardarlo y enviar URL de descarga
-            console.log(`🗂️ Generando carnet para ${name}...`);
-            const pdfBuffer = await generarCarnetBuffer({
-                gymName: name_gym,
-                userName: name,
-                cedula: cedula || 'No proporcionada',
-                phone: phone,
-                planName: data.plan_name,
-                idMembresia: data.id_membresia
-            });
-
-            const filename = `Carnet_${name.replace(/\s+/g, '_')}_${Date.now()}.pdf`;
-            carnetPath = path.join(CARNETS_DIR, filename);
-            fs.writeFileSync(carnetPath, pdfBuffer);
-            console.log(`📄 Carnet guardado temporalmente: ${filename}`);
-
-            // Construir URL pública de descarga
-            const downloadUrl = `${BASE_URL}/carnets/${filename}`;
-
-            // Enviar mensaje con link de descarga del carnet
-            await sendWhaibot(num, `📎 Aquí tienes tu carnet digital, *${name}*:\n${downloadUrl}`, botId, apiKey);
-            console.log(`✅ Link de carnet enviado a ${name}`);
+                      `📱 *¡DESCARGA NUESTRA APP!* 📱\n` +
+                      `Para ingresar al gimnasio, ahora generas tu acceso desde nuestra aplicación:\n\n` +
+                      `1️⃣ Descarga la App aquí: https://frontend-gym-topaz.vercel.app/login\n` +
+                      `2️⃣ Ingresa con tu número de *Cédula*.\n` +
+                      `3️⃣ Dirígete a la sección *"Mi QR"* para entrar.\n\n` +
+                      `¡A darle con todo! 💪🔥`;
         }
 
         // Enviar mensaje de texto principal
         const response = await sendWhaibot(num, mensaje, botId, apiKey);
         console.log(`✅ Notificación de ${data.is_renewal ? 'RENOVACIÓN' : 'BIENVENIDA'} enviada a ${name}`);
 
-        // Si se envió correctamente (201), ya no borramos aquí. 
-        // El cron se encargará de borrar archivos con más de 1 hora de antigüedad.
+
 
     } catch (error) {
         console.error("❌ Error al enviar notificación de WhatsApp:", error);
