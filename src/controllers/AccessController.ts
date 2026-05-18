@@ -138,6 +138,7 @@ export const verifyQrTicket = async (req: Request, res: Response) => {
                 m.fecha_membresias AS fecha_vencimiento,
                 c.name  AS client_name,
                 c.cedula AS client_cedula,
+                c.image AS client_image,
                 p.name  AS plan_name
             FROM memberships m
             JOIN clients c ON c.id = m.client_id
@@ -210,6 +211,7 @@ export const verifyQrTicket = async (req: Request, res: Response) => {
                 socio:          mem.client_name,
                 cedula:         mem.client_cedula,
                 plan:           mem.plan_name,
+                image:          mem.client_image || null,
                 check_in_time:  new Date().toISOString(),
             },
         });

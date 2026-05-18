@@ -11,6 +11,7 @@ export const createClient = z.object({
     }).optional(),
   activo: z.boolean().optional(),
   gym_id: z.number(),
+  image: z.string().optional(),
 });
 
 export const updateClientSchema = z.object({
@@ -18,6 +19,7 @@ export const updateClientSchema = z.object({
   cedula: z.string().optional(),
   phone: z.string().optional(),
   activo: z.boolean().optional(),
+  image: z.string().optional(),
 });
 
 // Funcion para registrar un nuevo cliente
@@ -27,8 +29,9 @@ export const registerClient = async (data: unknown): Promise<ClientBody> => {
     validatedData.fecha_ingreso ?? new Date().toISOString().slice(0, 10);
 
   const activo = validatedData.activo ?? true;
+  const image = validatedData.image ?? null;
   const sql =
-    "INSERT INTO clients (name, cedula, phone, fecha_ingreso, activo, gym_id) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *";
+    "INSERT INTO clients (name, cedula, phone, fecha_ingreso, activo, gym_id, image) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *";
   const values = [
     validatedData.name,
     validatedData.cedula,
@@ -36,6 +39,7 @@ export const registerClient = async (data: unknown): Promise<ClientBody> => {
     fechaIngreso,
     activo,
     validatedData.gym_id,
+    image,
   ];
   const result = await query(sql, values);
   return result.rows[0];
@@ -43,14 +47,14 @@ export const registerClient = async (data: unknown): Promise<ClientBody> => {
 
 // Funcion para obtener todos los clientes de un gimnasio
 export const getClientsByGymId = async (gym_id: number,): Promise<ClientBody[]> => {
-  const sql = "SELECT id, gym_id, name, cedula, phone, fecha_ingreso, activo FROM clients WHERE gym_id = $1";
+  const sql = "SELECT id, gym_id, name, cedula, phone, fecha_ingreso, activo, image FROM clients WHERE gym_id = $1";
   const result = await query(sql, [gym_id]);
   return result.rows;
 };
 
 // Funcion para obtener un cliente por id
 export const getClientById = async ( id: number, gym_id: number, ): Promise<ClientBody | null> => {
-  const sql = "SELECT id, gym_id, name, cedula, phone, fecha_ingreso, activo  FROM clients WHERE id = $1 AND gym_id = $2";
+  const sql = "SELECT id, gym_id, name, cedula, phone, fecha_ingreso, activo, image FROM clients WHERE id = $1 AND gym_id = $2";
   const result = await query(sql, [id, gym_id]);
   if (result.rows.length === 0) return null;
   return result.rows[0];
@@ -114,7 +118,7 @@ export const getClientByCedula = async (cedula: string, gym_id: number): Promise
 };
 
 export const getClientForLogin = async (cedula: string, gym_id?: number) => {
-  let sql = "SELECT c.id, c.gym_id, c.name, c.cedula, c.activo, g.name_gym FROM clients c LEFT JOIN gyms g ON c.gym_id = g.id WHERE c.cedula = $1";
+  let sql = "SELECT c.id, c.gym_id, c.name, c.cedula, c.activo, c.image, g.name_gym FROM clients c LEFT JOIN gyms g ON c.gym_id = g.id WHERE c.cedula = $1";
   const params: any[] = [cedula];
   if (gym_id) {
     sql += " AND gym_id = $2";

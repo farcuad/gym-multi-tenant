@@ -17,3 +17,6 @@ CREATE TABLE IF NOT EXISTS access_tickets (
 CREATE INDEX IF NOT EXISTS idx_access_tickets_jti         ON access_tickets (jti);
 CREATE INDEX IF NOT EXISTS idx_access_tickets_user_date   ON access_tickets (user_id, check_in_time);
 CREATE INDEX IF NOT EXISTS idx_access_tickets_gym         ON access_tickets (gym_id, check_in_time);
+
+-- Columna para almacenar la URL o base64 de la imagen/foto del cliente
+ALTER TABLE clients ADD COLUMN IF NOT EXISTS image TEXT;

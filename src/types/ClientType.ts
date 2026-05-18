@@ -7,6 +7,7 @@ export interface ClientBody {
     fecha_ingreso: string;
     activo: boolean;
     gym_id: number;
+    image?: string;
 }
 
 export type CreateClientDTO = Omit<ClientBody, 'id'>;
