@@ -1,7 +1,8 @@
 import { query } from "../connect/connect.js";
+import type { BalanceFinancieroMes, ResumenGastos } from "../types/GastosTypes.js";
 
 export const getMetrticsPayments = async (year: number, gym_id: number) => {
-    const sql = `
+  const sql = `
     SELECT 
       TO_CHAR(months.month, 'YYYY-MM') AS month,
       COALESCE(ROUND(SUM(p.amount_paid_bs / p.exchange_rate), 2),0) AS total_usd
@@ -17,12 +18,12 @@ export const getMetrticsPayments = async (year: number, gym_id: number) => {
     GROUP BY months.month
     ORDER BY months.month;
   `;
-  
+
   const { rows } = await query(sql, [year, gym_id]);
   return rows.map((row: any) => ({
-  month: row.month,
-  total_usd: Number(row.total_usd)
-}));
+    month: row.month,
+    total_usd: Number(row.total_usd)
+  }));
 }
 
 // funcion para obtener clientes por mes
@@ -50,3 +51,62 @@ ORDER BY months.month;
     total_clients: Number(row.total_clients)
   }));
 };
+
+export const getBalanceFinancieroMes = async (gymId: number, year: number, month: number): Promise<BalanceFinancieroMes> => {
+  const mesString = String(month).padStart(2, '0');
+  const fechaInicio = `${year}-${mesString}-01`
+
+  const sql = `SELECT 
+      -- 1. Total acumulado de ingresos del mes (Convertido de Bs a USD)
+      COALESCE(
+        ROUND(
+          SUM(p.amount_paid_bs / p.exchange_rate)::NUMERIC, 
+          2
+        ), 0
+      )::FLOAT AS total_ingresos,
+      
+      -- 2. Total acumulado de gastos del mismo mes
+      COALESCE(
+        (
+          SELECT ROUND(SUM(monto)::NUMERIC, 2)
+          FROM gastos 
+          WHERE gym_id = $1 
+            AND fecha_gasto >= $2::DATE 
+            AND fecha_gasto < $2::DATE + INTERVAL '1 month'
+        ), 0
+      )::FLOAT AS total_gastos
+    FROM payments p
+    WHERE p.gym_id = $1 
+      AND p.status = 'Confirmado' 
+      AND p.created_at >= $2::DATE 
+      AND p.created_at < $2::DATE + INTERVAL '1 month';`
+
+  const result = await query(sql, [gymId, fechaInicio])
+  const total_ingresos = result.rows[0]?.total_ingresos || 0;
+  const total_gastos = result.rows[0]?.total_gastos || 0;
+  const balance_neto = total_ingresos - total_gastos;
+
+  return {
+    total_ingresos,
+    total_gastos,
+    balance_neto
+  }
+};
+
+export const getGastosPorCategoria = async (gymId: number, year: number, month: number): Promise<ResumenGastos[]> => {
+  const mesString = String(month).padStart(2, '0');
+  const fechaInicio = `${year}-${mesString}-01`
+
+  const sql = `SELECT 
+      categoria, 
+      ROUND(SUM(monto)::NUMERIC, 2)::FLOAT AS total
+    FROM gastos
+    WHERE gym_id = $1 
+      AND fecha_gasto >= $2::DATE 
+      AND fecha_gasto < $2::DATE + INTERVAL '1 month'
+    GROUP BY categoria
+    ORDER BY total DESC;`;
+
+  const result = await query(sql, [gymId, fechaInicio]);
+  return result.rows as ResumenGastos[]
+}

@@ -20,3 +20,26 @@ CREATE INDEX IF NOT EXISTS idx_access_tickets_gym         ON access_tickets (gym
 
 -- Columna para almacenar la URL o base64 de la imagen/foto del cliente
 ALTER TABLE clients ADD COLUMN IF NOT EXISTS image TEXT;
+
+CREATE TYPE categoria_gasto AS ENUM (
+    'maquinaria', 
+    'mantenimiento', 
+    'servicios', 
+    'insumos', 
+    'nomina', 
+    'marketing', 
+    'otros'
+);
+
+ALTER TYPE categoria_gasto ADD VALUE 'alquiler';
+
+CREATE TABLE gastos (
+    id SERIAL PRIMARY KEY,
+    gym_id INTEGER NOT NULL REFERENCES gyms(id) ON DELETE CASCADE,
+    titulo VARCHAR(150) NOT NULL, -- Ej: "Compra de 2 mancuernas de 30kg" o "Pago de luz"
+    descripcion TEXT, -- Detalles adicionales
+    monto NUMERIC(10, 2) NOT NULL, -- El costo del gasto
+    categoria categoria_gasto NOT NULL, -- Para poder filtrar en las gráficas
+    fecha_gasto DATE NOT NULL DEFAULT CURRENT_DATE, -- Cuándo se ejecutó el gasto real
+    creado_en TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);

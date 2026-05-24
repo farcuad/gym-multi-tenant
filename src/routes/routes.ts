@@ -1,10 +1,10 @@
 import { Router } from "express";
 import { loginAdmin, registerAdmin, resetPassword, forgotPassword, loginClient, registerUsers, getByUsersRole } from "../controllers/AuthController.js";
-import { createClient, fetchClientsByGymId, fetchClientById, updateClient, deleteClient, alertClient,} from "../controllers/ClientController.js";
-import { createMembership, getMembership, renewMembership, deleteMemberships, verifyMembershipStatus,} from "../controllers/MembershipsController.js";
+import { createClient, fetchClientsByGymId, fetchClientById, updateClient, deleteClient, alertClient, } from "../controllers/ClientController.js";
+import { createMembership, getMembership, renewMembership, deleteMemberships, verifyMembershipStatus, } from "../controllers/MembershipsController.js";
 import { generateAccessTicket, verifyQrTicket } from "../controllers/AccessController.js";
-import { createPlan, fetchPlansByGymId, modifyPlan, removePlan,} from "../controllers/PlansController.js";
-import { getDashboardData, updatePlan, getGymHistory,} from "../controllers/AdminSuperiorController.js";
+import { createPlan, fetchPlansByGymId, modifyPlan, removePlan, } from "../controllers/PlansController.js";
+import { getDashboardData, updatePlan, getGymHistory, } from "../controllers/AdminSuperiorController.js";
 import { getPayments } from "../controllers/PaymentsController.js";
 import { analizarGanancias } from "../controllers/AiController.js";
 import { authToken } from "../middleware/authMiddleware.js";
@@ -14,15 +14,18 @@ import { isClient } from "../middleware/isClient.js";
 import { requirePlan } from "../middleware/requirePlan.js";
 import { loadSubscription } from "../middleware/loadSubcription.js";
 import { getSubscription } from "../controllers/SubsCriptionController.js";
-import { getMetricsPayments,getMetricsNewClients, } from "../controllers/MetricasController.js";
+import { getMetricsPayments, getMetricsNewClients, getFinanzasMetrics } from "../controllers/MetricasController.js";
 import { getRate } from "../controllers/BcvController.js";
 import { createbotsConfigController, getbotsConfigByIdController, updatebotsConfigByIdController, deletebotsConfigByIdController } from "../controllers/BotConfigController.js";
 import { createExercise, fetchExercises, fetchExerciseById, updateExercise, deleteExercise } from "../controllers/ExerciseController.js";
-import { createRoutine, fetchRoutines, fetchRoutineById, 
+import {
+  createRoutine, fetchRoutines, fetchRoutineById,
   updateRoutine, deleteRoutine, addExercise, removeExercise, assignRoutine, fetchActiveClientRoutine,
-   deactivateRoutine, fetchClientRoutines } from "../controllers/RoutineController.js";
+  deactivateRoutine, fetchClientRoutines
+} from "../controllers/RoutineController.js";
 import { createConfigAppController, getCongigApp, updatedConfigAppController, deleteConfigController } from "../controllers/AppConfigController.js";
 import { configApp } from "../middleware/configApp.js";
+import { createGastosGyms, getGastosByGymIdGyms, updateGastosByGymGyms, deleteGastosGymGyms } from "../controllers/GastosController.js";
 const router = Router();
 
 // Rutas publicas
@@ -78,11 +81,16 @@ router.post("/plans", createPlan);
 router.get("/plans", fetchPlansByGymId);
 router.put("/plans/:id", modifyPlan);
 router.delete("/plans/:id", removePlan);
+
+router.post("/gastos", createGastosGyms);
+router.get("/gastos", getGastosByGymIdGyms);
+router.put("/gastos/:id", updateGastosByGymGyms);
+router.delete("/gastos/:id", deleteGastosGymGyms);
 // Rutas para los pagos
 router.get("/payments", getPayments);
 router.get("/metrics/payments", getMetricsPayments);
 router.get("/metrics/new-clients", getMetricsNewClients);
-
+router.get("/metrics/finanzas", getFinanzasMetrics);
 // Rutas para la configuracion del bot
 router.post("/bot-config", createbotsConfigController);
 router.get("/bot-config", getbotsConfigByIdController);
