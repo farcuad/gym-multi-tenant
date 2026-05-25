@@ -28,5 +28,6 @@ export interface BalanceFinancieroMes {
     total_ingresos: number;
     total_gastos: number;
     balance_neto: number;
+    new_clients: number
 }
 

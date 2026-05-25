@@ -54,41 +54,45 @@ ORDER BY months.month;
 
 export const getBalanceFinancieroMes = async (gymId: number, startDate: string, endDate: string): Promise<BalanceFinancieroMes> => {
 
-  const sql = `SELECT 
-      -- 1. Total acumulado de ingresos en el rango (De Bs a USD)
-      -- Usamos < $3::DATE + INTERVAL '1 day' para agarrar los TIMESTAMPS de hoy completos
-      COALESCE(
-        ROUND(
-          SUM(p.amount_paid_bs / p.exchange_rate)::NUMERIC, 
-          2
-        ), 0
-      )::FLOAT AS total_ingresos,
+  const sql = `
+    SELECT 
+      (
+        SELECT COALESCE(ROUND(SUM(amount_paid_bs / exchange_rate)::NUMERIC, 2), 0)::FLOAT
+        FROM payments
+        WHERE gym_id = $1 
+          AND status = 'Confirmado' 
+          AND created_at >= $2::DATE 
+          AND created_at < $3::DATE + INTERVAL '1 day'
+      ) AS total_ingresos,
       
-      -- 2. Total acumulado de gastos en el rango (fecha_gasto es DATE, usamos <=)
-      COALESCE(
-        (
-          SELECT ROUND(SUM(monto)::NUMERIC, 2)
-          FROM gastos 
-          WHERE gym_id = $1 
-            AND fecha_gasto >= $2::DATE 
-            AND fecha_gasto <= $3::DATE
-        ), 0
-      )::FLOAT AS total_gastos
-    FROM payments p
-    WHERE p.gym_id = $1 
-      AND p.status = 'Confirmado' 
-      AND p.created_at >= $2::DATE 
-      AND p.created_at < $3::DATE + INTERVAL '1 day';`;
+      (
+        SELECT COALESCE(ROUND(SUM(monto)::NUMERIC, 2), 0)::FLOAT
+        FROM gastos 
+        WHERE gym_id = $1 
+          AND fecha_gasto >= $2::DATE 
+          AND fecha_gasto <= $3::DATE
+      ) AS total_gastos,
+
+      (
+        SELECT COALESCE(COUNT(id)::INT, 0)::INT 
+        FROM clients 
+        WHERE gym_id = $1 
+          AND fecha_ingreso >= $2::DATE 
+          AND fecha_ingreso <= $3::DATE
+      ) AS new_clients;
+  `;
 
   const result = await query(sql, [gymId, startDate, endDate])
   const total_ingresos = result.rows[0]?.total_ingresos || 0;
   const total_gastos = result.rows[0]?.total_gastos || 0;
+  const new_clients = result.rows[0]?.new_clients || 0;
   const balance_neto = total_ingresos - total_gastos;
 
   return {
     total_ingresos,
     total_gastos,
-    balance_neto
+    balance_neto,
+    new_clients
   }
 };
 
