@@ -4,7 +4,7 @@ export interface UserBase {
   name: string;
   email: string;
   password: string;
-  role: string;
+  role: UserRole;
   gym_id: number;
   plan_type: string;
 }
@@ -26,4 +26,11 @@ export interface TokenPayload {
   role: UserRole;
   plan_type: string;
   name_gym: string;
+}
+
+export interface UserUpdate {
+  name: string;
+  email: string;
+  role: UserRole;
+  password?: string;
 }

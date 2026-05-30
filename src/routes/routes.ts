@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { loginAdmin, registerAdmin, resetPassword, forgotPassword, loginClient, registerUsers, getByUsersRole } from "../controllers/AuthController.js";
+import { loginAdmin, registerAdmin, resetPassword, forgotPassword, loginClient, registerUsers, getByUsersRole, updateUsersRole, deleteUsersRole } from "../controllers/AuthController.js";
 import { createClient, fetchClientsByGymId, fetchClientById, updateClient, deleteClient, alertClient, } from "../controllers/ClientController.js";
 import { createMembership, getMembership, renewMembership, deleteMemberships, verifyMembershipStatus, } from "../controllers/MembershipsController.js";
 import { generateAccessTicket, verifyQrTicket } from "../controllers/AccessController.js";
@@ -57,6 +57,8 @@ router.get("/plans-admin/:id/history", isAdmin, getGymHistory);
 router.get("/subscriptions", getSubscription);
 router.post("/users", registerUsers);
 router.get("/users", getByUsersRole);
+router.put("/users/:id", updateUsersRole);
+router.delete("/users/:id", deleteUsersRole);
 
 router.use(loadSubscription);
 // Rutas para los clientes

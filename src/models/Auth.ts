@@ -1,6 +1,6 @@
 import { query } from "../connect/connect.js";
 import { z } from "zod";
-import type { UserBase } from "../types/AuthType.js";
+import type { UserBase, UserUpdate } from "../types/AuthType.js";
 //Utilizamos Zod para validar los datos de entrada
 export const RegisterUser = z.object({
   gym_name: z.string().min(3).max(100),
@@ -62,17 +62,32 @@ export const GetUserByEmail = async (
 };
 
 //Modelo que permite crear usuarios auxiliares
-export const RegisterUsers = async (gymId: number, data: UserBase) : Promise<UserBase | null> =>{
+export const RegisterUsers = async (gymId: number, data: UserBase): Promise<UserBase | null> => {
   const sql = `INSERT INTO users (gym_id, name, email, password, role) VALUES ($1, $2, $3, $4, $5) RETURNING *`
   const values = [gymId, data.name, data.email, data.password, data.role]
   const result = await query(sql, values)
-  if(result.rows.length === 0) return null
+  if (result.rows.length === 0) return null
   return result.rows[0] as UserBase
 }
 
-export const getUsersRole = async (gymId: number) : Promise<UserBase[]> =>{
+export const getUsersRole = async (gymId: number): Promise<UserBase[]> => {
   const sql = `SELECT id, name, email, role, created_at FROM users WHERE gym_id = $1 AND role != 'admin'`
   const result = await query(sql, [gymId])
-  if(result.rows.length === 0) return []
+  if (result.rows.length === 0) return []
   return result.rows as UserBase[]
+}
+export const updateUsers = async (gymId: number, userId: number, data: UserUpdate) => {
+  const sql = `UPDATE users SET name = $1, email = $2, role = $3 WHERE gym_id = $4 AND id = $5 RETURNING *`
+  const values = [data.name, data.email, data.role, gymId, userId]
+  const result = await query(sql, values)
+  if (result.rows.length === 0) return null
+  return result.rows[0] as UserBase
+}
+
+export const deleteUsers = async (gymId: number, userId: number): Promise<UserBase | null> => {
+  const sql = `DELETE FROM users WHERE gym_id = $1 AND id = $2 RETURNING *`
+  const values = [gymId, userId]
+  const result = await query(sql, values)
+  if (result.rows.length === 0) return null
+  return result.rows[0] as UserBase
 }

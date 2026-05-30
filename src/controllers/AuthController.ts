@@ -1,6 +1,6 @@
 import type { Request, Response } from "express";
 import bycrypt from "bcrypt";
-import { GetUserByEmail, RegisterAdmin, RegisterUsers, getUsersRole } from "../models/Auth.js";
+import { GetUserByEmail, RegisterAdmin, RegisterUsers, getUsersRole, updateUsers, deleteUsers } from "../models/Auth.js";
 import { savePassword, getPassword, updatePassword } from "../models/Admin.js";
 import { getClientForLogin } from "../models/Clients.js";
 import { generateToken } from "../utils/jwt.js";
@@ -196,18 +196,62 @@ export const registerUsers = async (req: Request, res: Response) => {
   }
 };
 
-export const getByUsersRole = async (req: Request, res: Response) =>{
+export const getByUsersRole = async (req: Request, res: Response) => {
   try {
     const gym_id = req.user.gym_id
     const users = await getUsersRole(gym_id)
     if (!users) {
       return res.status(404).json({ error: "Usuarios no encontrados" });
     }
-    res.status(200).json({ message: "Usuarios obtenidos correctamente", users})
+    res.status(200).json({ message: "Usuarios obtenidos correctamente", users })
   } catch (error) {
     return res.status(400).json({ error: (error as Error).message });
   }
 }
+
+export const updateUsersRole = async (req: Request, res: Response) => {
+  try {
+    const gym_id = req.user.gym_id
+    const userId = Number(req.params.id);
+    const { name, email, role, password }: { name: string, email: string, role: UserRole, password: string } = req.body;
+    const user = await GetUserByEmail(email);
+    if (!user) {
+      return res.status(404).json({ error: "Usuario no encontrado" });
+    }
+    if (!name || !email || !role) {
+      return res.status(400).json({ error: "Todos los campos son requeridos" });
+    }
+    const hashedPassword = await bycrypt.hash(password, 10);
+    const userData = {
+      name: name,
+      email: email,
+      role: role,
+      password: hashedPassword,
+    };
+    const updatedUser = await updateUsers(gym_id, userId, userData)
+    if (!updatedUser) {
+      return res.status(404).json({ error: "Usuario no encontrado" });
+    }
+    res.status(200).json({ message: "Usuario actualizado correctamente", updatedUser })
+  } catch (error) {
+    return res.status(400).json({ error: (error as Error).message });
+  }
+}
+
+export const deleteUsersRole = async (req: Request, res: Response) => {
+  try {
+    const gym_id = req.user.gym_id
+    const userId = Number(req.params.id);
+    const deletedUser = await deleteUsers(gym_id, userId)
+    if (!deletedUser) {
+      return res.status(404).json({ error: "Usuario no encontrado" });
+    }
+    res.status(200).json({ message: "Usuario eliminado correctamente", deletedUser })
+  } catch (error) {
+    return res.status(400).json({ error: (error as Error).message });
+  }
+}
+
 
 export const loginClient = async (req: Request, res: Response) => {
   try {
@@ -223,9 +267,9 @@ export const loginClient = async (req: Request, res: Response) => {
     }
 
     if (clients.length > 1 && !gym_id) {
-      return res.status(400).json({ 
+      return res.status(400).json({
         error: "Múltiples cuentas encontradas. Por favor especifique el gimnasio.",
-        gyms: clients.map(c => c.gym_id) 
+        gyms: clients.map(c => c.gym_id)
       });
     }
 
@@ -245,9 +289,9 @@ export const loginClient = async (req: Request, res: Response) => {
 
     const token = generateToken(userPayload);
 
-    res.status(200).json({ 
-      message: "Inicio de sesión exitoso", 
-      token, 
+    res.status(200).json({
+      message: "Inicio de sesión exitoso",
+      token,
       user: {
         id: client.id,
         gym_id: client.gym_id,
@@ -255,7 +299,7 @@ export const loginClient = async (req: Request, res: Response) => {
         cedula: client.cedula,
         name_gym: (client as any).name_gym,
         role: "client"
-      } 
+      }
     });
   } catch (error) {
     return res.status(500).json({ error: (error as Error).message });
