@@ -6,12 +6,12 @@ const redisClient = createClient({
 });
 
 // Escuchadores de eventos para monitorear el estado en la consola
-redisClient.on("error", (err) => {
-    console.error("❌ [REDIS ERROR]: No se pudo conectar a la memoria RAM", err);
+redisClient.on("error", (err: any) => {
+    console.error("[REDIS ERROR]: No se pudo conectar a la memoria RAM", err);
 });
 
 redisClient.on("connect", () => {
-    console.log("⚡ [REDIS]: Conectado exitosamente a la memoria RAM");
+    console.log("[REDIS]: Conectado exitosamente a la memoria RAM");
 });
 
 // Iniciamos la conexión de forma asíncrona inmediatamente
