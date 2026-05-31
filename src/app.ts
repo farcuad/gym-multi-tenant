@@ -49,4 +49,18 @@ app.use(express.json({ limit: '10mb' }));
 
 app.use("/api", router);
 
+app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
+    console.error("❌ [SERVER ERROR INTERCEPTED] Se rompió algo en las rutas o middlewares:");
+    console.error(err.stack || err);
+
+    // Forzamos a que el error mantenga el CORS correcto para que el navegador no lo oculte
+    res.header("Access-Control-Allow-Origin", req.headers.origin || "http://localhost:5173");
+    res.header("Access-Control-Allow-Credentials", "true");
+
+    res.status(err.status || 500).json({
+        error: true,
+        message: err.message || "Internal Server Error"
+    });
+});
+
 export default app;
