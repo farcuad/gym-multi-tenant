@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { loginAdmin, registerAdmin, resetPassword, forgotPassword, loginClient, registerUsers, getByUsersRole, updateUsersRole, deleteUsersRole } from "../controllers/AuthController.js";
+import { loginAdmin, refreshSession, logoutSession, registerAdmin, resetPassword, forgotPassword, loginClient, registerUsers, getByUsersRole, updateUsersRole, deleteUsersRole } from "../controllers/AuthController.js";
 import { createClient, fetchClientsByGymId, fetchClientById, updateClient, deleteClient, alertClient, } from "../controllers/ClientController.js";
 import { createMembership, getMembership, renewMembership, deleteMemberships, verifyMembershipStatus, } from "../controllers/MembershipsController.js";
 import { generateAccessTicket, verifyQrTicket } from "../controllers/AccessController.js";
@@ -32,6 +32,8 @@ const router = Router();
 router.post("/register", registerAdmin);
 router.post("/login", loginAdmin);
 router.post("/client/login", loginClient);
+router.post("/refresh", refreshSession);
+router.post("/logout", logoutSession);
 // Ruta para obtener los datos de la membresia mediante qr
 
 // Rutas para recuperación de contraseña

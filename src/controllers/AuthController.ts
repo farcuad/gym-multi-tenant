@@ -3,7 +3,7 @@ import bycrypt from "bcrypt";
 import { GetUserByEmail, RegisterAdmin, RegisterUsers, getUsersRole, updateUsers, deleteUsers } from "../models/Auth.js";
 import { savePassword, getPassword, updatePassword } from "../models/Admin.js";
 import { getClientForLogin } from "../models/Clients.js";
-import { generateToken } from "../utils/jwt.js";
+import { generateAccessToken, generateRefreshToken, verifyRefreshToken } from "../utils/jwt.js";
 import { transporter } from "../utils/mailer.js";
 import type { UserRole, TokenPayload } from "../types/AuthType.js";
 export const registerAdmin = async (req: Request, res: Response) => {
@@ -86,10 +86,19 @@ export const loginAdmin = async (req: Request, res: Response) => {
       plan_type: existingUser.plan_type,
       name_gym: (existingUser as any).name_gym,
     };
-    const token = generateToken(userPayload);
-    res
-      .status(200)
-      .json({ message: "Inicio de sesion exitoso", token: token, user });
+    const accessToken = generateAccessToken(userPayload);
+    const refreshToken = generateRefreshToken(userPayload)
+    res.cookie("refreshToken", refreshToken, {
+      httpOnly: true, // Bloquea robos por código JavaScript (XSS)
+      secure: process.env.NODE_ENV === "production", // Solo HTTPS en producción
+      sameSite: "strict", // Previene ataques CSRF
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 días en milisegundos
+    });
+    res.status(200).json({
+      message: "Inicio de sesion exitoso",
+      token: accessToken, // Tu frontend lo guardará igual como "token" en el estado
+      user
+    });
   } catch (error) {
     return res.status(400).json({ error: (error as Error).message });
   }
@@ -287,11 +296,19 @@ export const loginClient = async (req: Request, res: Response) => {
       name_gym: (client as any).name_gym
     };
 
-    const token = generateToken(userPayload);
+    // GENERAMOS AMBOS TOKENS
+    const accessToken = generateAccessToken(userPayload);
+    const refreshToken = generateRefreshToken(userPayload);
 
+    res.cookie("refreshToken", refreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "strict",
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+    });
     res.status(200).json({
       message: "Inicio de sesión exitoso",
-      token,
+      token: accessToken,
       user: {
         id: client.id,
         gym_id: client.gym_id,
@@ -304,4 +321,48 @@ export const loginClient = async (req: Request, res: Response) => {
   } catch (error) {
     return res.status(500).json({ error: (error as Error).message });
   }
+};
+
+export const refreshSession = async (req: Request, res: Response) => {
+  try {
+    // Recuperamos la cookie gracias al cookie-parser que instalaste
+    const refreshToken = req.cookies.refreshToken;
+
+    if (!refreshToken) {
+      return res.status(401).json({ error: "No autorizado. Sesión inexistente." });
+    }
+
+    // Validamos que el Refresh Token no esté expirado y extraemos los datos del gimnasio
+    const decoded = verifyRefreshToken(refreshToken);
+
+    // Re-armamos el payload limpio
+    const userPayload: TokenPayload = {
+      id: decoded.id,
+      gym_id: decoded.gym_id,
+      role: decoded.role,
+      plan_type: decoded.plan_type,
+      name_gym: decoded.name_gym,
+    };
+
+    // Emitimos un nuevo Access Token de 15 minutos para el frontend
+    const newAccessToken = generateAccessToken(userPayload);
+
+    return res.status(200).json({
+      token: newAccessToken,
+    });
+  } catch (error) {
+    // Si el refresh token caducó en el navegador, devolvemos 403 para forzar logout completo en React
+    return res.status(403).json({ error: "Sesión expirada o inválida. Inicie sesión de nuevo." });
+  }
+};
+
+export const logoutSession = async (req: Request, res: Response) => {
+  // Le ordenamos al navegador que remueva la cookie eliminando su contenido
+  res.clearCookie("refreshToken", {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "strict",
+  });
+
+  return res.status(200).json({ message: "Sesión cerrada de forma segura" });
 };

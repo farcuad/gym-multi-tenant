@@ -1,17 +1,17 @@
 import express from "express";
 import cors from "cors";
-import path from "path";
-import { fileURLToPath } from "url";
+import cookieParser from "cookie-parser";
 import router from "./routes/routes.js";
 const app = express();
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
 
-app.use(cors());
+app.use(cors({
+    origin: ['http://localhost:5173', 'https://frontend-gym-topaz.vercel.app'],
+    credentials: true
+}));
+app.use(cookieParser())
 app.use(express.json({ limit: '10mb' }));
 
-app.use("/carnets", express.static(path.join(__dirname, "..", "carnets")))
-app.use("/api", router);    
+app.use("/api", router);
 
 export default app;
