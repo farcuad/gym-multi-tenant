@@ -3,6 +3,7 @@ import { z } from "zod";
 import { registerRoutine, getRoutinesByGymId, getRoutineById, updateRoutineById, 
   deleteRoutineById, addExerciseToRoutine,getExercisesByRoutineId, removeExerciseFromRoutine,
   assignRoutineToClient,getActiveRoutineByClientId,deactivateClientRoutine, getClientRoutines } from "../models/Routines.js";
+import { getRoutinesListCache, setRoutinesListCache, getSingleRoutineCache, setSingleRoutineCache, invalidateRoutineCache } from "../service/routinesCache.service.js";
 
 // === RUTINAS ===
 
@@ -13,6 +14,8 @@ export const createRoutine = async (req: Request, res: Response) => {
     const trainer_id = req.user.role === 'trainer' ? req.user.id : null; 
     
     const routine = await registerRoutine(Number(gym_id), trainer_id, req.body);
+    // Invalidamos la cache
+    await invalidateRoutineCache(Number(gym_id));
     res.status(201).json({ message: "Rutina creada", routine });
   } catch (error) {
     if (error instanceof z.ZodError) {
@@ -25,7 +28,14 @@ export const createRoutine = async (req: Request, res: Response) => {
 export const fetchRoutines = async (req: Request, res: Response) => {
   try {
     const gym_id = req.user.gym_id;
+    // Verificamos cache
+    const cacheRoutines = await getRoutinesListCache(Number(gym_id));
+    if (cacheRoutines) {
+      return res.status(200).json({ message: "Rutinas obtenidas de caché", routines: cacheRoutines });
+    }
     const routines = await getRoutinesByGymId(Number(gym_id));
+    // Guardamos en cache
+    await setRoutinesListCache(Number(gym_id), routines);
     res.status(200).json({ message: "Rutinas obtenidas", routines });
   } catch (error) {
     res.status(500).json({ error: "Error interno del servidor" });
@@ -37,6 +47,12 @@ export const fetchRoutineById = async (req: Request, res: Response) => {
     const id = Number(req.params.id);
     const gym_id = req.user.gym_id;
     
+    // Verificamos cache
+    const cacheRoutine = await getSingleRoutineCache(Number(gym_id), id);
+    if (cacheRoutine) {
+      return res.status(200).json({ message: "Rutina obtenida de caché", routine: cacheRoutine });
+    }
+
     const routine = await getRoutineById(id, Number(gym_id));
     if (!routine) {
       return res.status(404).json({ error: "Rutina no encontrada" });
@@ -45,7 +61,11 @@ export const fetchRoutineById = async (req: Request, res: Response) => {
     // Obtenemos los ejercicios con la información adicional
     const exercises = await getExercisesByRoutineId(id, Number(gym_id));
     
-    res.status(200).json({ message: "Rutina obtenida", routine: { ...routine, exercises } });
+    const routineData = { ...routine, exercises };
+    // Guardamos en cache
+    await setSingleRoutineCache(Number(gym_id), id, routineData);
+    
+    res.status(200).json({ message: "Rutina obtenida", routine: routineData });
   } catch (error) {
     res.status(500).json({ error: "Error interno del servidor" });
   }
@@ -58,6 +78,8 @@ export const updateRoutine = async (req: Request, res: Response) => {
     const updated = await updateRoutineById(id, Number(gym_id), req.body);
     
     if (!updated) return res.status(404).json({ error: "Rutina no encontrada o sin cambios" });
+    // Invalidamos la cache
+    await invalidateRoutineCache(Number(gym_id), id);
     res.status(200).json({ message: "Rutina actualizada", routine: updated });
   } catch (error) {
     if (error instanceof z.ZodError) return res.status(400).json({ error: "Datos inválidos", details: error.issues });
@@ -73,6 +95,8 @@ export const deleteRoutine = async (req: Request, res: Response) => {
     const deleted = await deleteRoutineById(id, Number(gym_id));
     if (!deleted) return res.status(404).json({ error: "Rutina no encontrada" });
     
+    // Invalidamos la cache
+    await invalidateRoutineCache(Number(gym_id), id);
     res.status(200).json({ message: "Rutina eliminada" });
   } catch (error: any) {
     res.status(500).json({ error: "Error interno" });
@@ -88,6 +112,8 @@ export const addExercise = async (req: Request, res: Response) => {
     const data = { ...req.body, routine_id: Number(req.params.routineId) };
     
     const exercise = await addExerciseToRoutine(Number(gym_id), data);
+    // Invalidar cache de la rutina
+    await invalidateRoutineCache(Number(gym_id), Number(req.params.routineId));
     res.status(201).json({ message: "Ejercicio agregado a la rutina", exercise });
   } catch (error) {
     if (error instanceof z.ZodError) return res.status(400).json({ error: "Datos inválidos", details: error.issues });
@@ -103,6 +129,8 @@ export const removeExercise = async (req: Request, res: Response) => {
     const deleted = await removeExerciseFromRoutine(id, Number(gym_id));
     if (!deleted) return res.status(404).json({ error: "Detalle de ejercicio no encontrado" });
     
+    // Invalidamos cache (solo lista porque no tenemos routineId fácilmente para individual)
+    await invalidateRoutineCache(Number(gym_id));
     res.status(200).json({ message: "Ejercicio removido de la rutina" });
   } catch (error) {
     res.status(500).json({ error: "Error interno" });

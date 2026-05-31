@@ -1,5 +1,6 @@
 import type { Request, Response } from "express";
 import { registerPlan, getPlansByGymId, updatePlan, deletePlan, } from "../models/Plans.js";
+import { getPlansListCache, setPlansListCache, invalidatePlanCache } from "../service/plansCache.service.js";
 
 // Funcion para crear un nuevo plan
 export const createPlan = async (req: Request, res: Response) => {
@@ -10,6 +11,8 @@ export const createPlan = async (req: Request, res: Response) => {
     const planData = { ...req.body, gym_id: gym_id };
     // Registrar el plan
     const plan = await registerPlan(planData);
+    // Invalidar cache
+    await invalidatePlanCache(Number(gym_id));
     res.status(201).json({ message: "Plan registrado correctamente", plan });
   } catch (error) {
     res.status(400).json({ error: (error as Error).message });
@@ -21,8 +24,15 @@ export const fetchPlansByGymId = async (req: Request, res: Response) => {
   try {
     // Obtenemos el gym_id del usuario autenticado
     const gym_id = req.user.gym_id;
+    // Verificamos cache
+    const cachePlans = await getPlansListCache(Number(gym_id));
+    if (cachePlans) {
+      return res.status(200).json({ message: "Planes obtenidos correctamente de la caché", plans: cachePlans });
+    }
     // Obtenemos los planes
     const plans = await getPlansByGymId(Number(gym_id));
+    // Guardamos en cache
+    await setPlansListCache(Number(gym_id), plans);
     res.status(200).json({ message: "Planes obtenidos correctamente", plans });
   } catch (error) {
     res.status(400).json({ error: (error as Error).message });
@@ -44,6 +54,8 @@ export const modifyPlan = async (req: Request, res: Response) => {
     if (!updatedPlan) {
       return res.status(404).json({ error: "Plan no encontrado o sin datos para actualizar" });
     }
+    // Invalidar cache
+    await invalidatePlanCache(Number(gym_id), id);
     // Devolvemos el plan actualizado
     res.status(200).json({ message: "Plan actualizado correctamente", plan: updatedPlan });
   } catch (error) {
@@ -63,6 +75,8 @@ export const removePlan = async (req: Request, res: Response) => {
     if (!deleted) {
       return res.status(404).json({ error: "Plan no encontrado" });
     }
+    // Invalidar cache
+    await invalidatePlanCache(Number(gym_id), id);
     res.status(200).json({ message: "Plan eliminado correctamente" });
   } catch (error: any) {
     if (error.code === "23503") {
