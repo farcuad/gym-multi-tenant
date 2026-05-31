@@ -49,18 +49,16 @@ app.use(express.json({ limit: '10mb' }));
 
 app.use("/api", router);
 
-app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
-    console.error("❌ [SERVER ERROR INTERCEPTED] Se rompió algo en las rutas o middlewares:");
-    console.error(err.stack || err);
-
-    // Forzamos a que el error mantenga el CORS correcto para que el navegador no lo oculte
-    res.header("Access-Control-Allow-Origin", req.headers.origin || "http://localhost:5173");
-    res.header("Access-Control-Allow-Credentials", "true");
-
-    res.status(err.status || 500).json({
-        error: true,
-        message: err.message || "Internal Server Error"
-    });
+app.use((req, res, next) => {
+    if (req.method === 'OPTIONS') {
+        console.log(`[PREFLIGHT INTERCEPTED] Respondiendo 200 OK directo al método OPTIONS de: ${req.headers.origin}`);
+        res.header('Access-Control-Allow-Origin', req.headers.origin || 'http://localhost:5173');
+        res.header('Access-Control-Allow-Credentials', 'true');
+        res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+        res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, Accept, x-client-key');
+        return res.sendStatus(200); // Corta la petición aquí y le da al navegador lo que quiere
+    }
+    next();
 });
 
 export default app;
