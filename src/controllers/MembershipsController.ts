@@ -5,8 +5,7 @@ import { registerPayment } from "../models/Payments.js";
 import type { CreatePaymentDTO } from "../types/Payments.js";
 import { sendMembershipNotification } from "../service/welcomeService.js";
 import { getSubscriptions } from "../models/Subscriptions.js";
-import { getMembershipsListCache, setMembershipsListCache, invalidateMembershipCache } from "../service/membershipsCache.service.js";
-import { invalidatePaymentCache } from "../service/paymentsCache.service.js";
+
 // función para crear una nueva membresía
 export const createMembership = async (req: Request, res: Response) => {
   try {
@@ -91,9 +90,6 @@ export const createMembership = async (req: Request, res: Response) => {
         id_membresia: membership.id,
       });
     }
-    // Invalidamos la cache
-    await invalidateMembershipCache(Number(gym_id_token));
-    await invalidatePaymentCache(Number(gym_id_token));
     res.status(201).json({ message: "Membresía y pago registrados correctamente", membership, payment, });
   } catch (error) {
     res.status(400).json({ error: (error as Error).message });
@@ -105,15 +101,8 @@ export const getMembership = async (req: Request, res: Response) => {
   try {
     // Obtener el gym_id del token de autenticación
     const gym_id_token = req.user.gym_id;
-    // Verificamos si hay cache
-    const cacheMemberships = await getMembershipsListCache(Number(gym_id_token));
-    if (cacheMemberships) {
-      return res.status(200).json({ message: "Membresía obtenida correctamente de la caché", membership: cacheMemberships });
-    }
     // Obtenemos la membresía del gimnasio
     const membership = await getMembershipByGymId(Number(gym_id_token));
-    // Guardamos en cache
-    await setMembershipsListCache(Number(gym_id_token), membership);
     res.status(200).json({ message: "Membresía obtenida correctamente", membership });
   } catch (error) {
     res.status(400).json({ error: (error as Error).message });
@@ -256,11 +245,6 @@ export const renewMembership = async (req: Request, res: Response) => {
       });
     }
 
-    // Invalidamos cache de membresias
-    await invalidateMembershipCache(Number(gym_id), id);
-    // Invalidamos cache de pagos
-    await invalidatePaymentCache(Number(gym_id));
-
     res.status(200).json({ message: "Membresía renovada correctamente", membership: updated, payment, });
   } catch (error) {
     res.status(400).json({ error: (error as Error).message });
@@ -276,8 +260,6 @@ export const deleteMemberships = async (req: Request, res: Response) => {
     const gym_id = Number(req.user.gym_id);
     // Eliminamos la membresía
     const deleted = await deleteMembership(id, gym_id);
-    // Invalidamos cache
-    await invalidateMembershipCache(Number(gym_id), id);
     res.status(200).json({ message: "Membresía eliminada correctamente", deleted });
   } catch (error: any) {
     // Manejamos error de postgresql

@@ -26,6 +26,7 @@ import {
 import { createConfigAppController, getCongigApp, updatedConfigAppController, deleteConfigController } from "../controllers/AppConfigController.js";
 import { configApp } from "../middleware/configApp.js";
 import { createGastosGyms, getGastosByGymIdGyms, updateGastosByGymGyms, deleteGastosGymGyms } from "../controllers/GastosController.js";
+import { checkMemberships } from "../controllers/CronController.js";
 const router = Router();
 
 // Rutas publicas
@@ -43,6 +44,9 @@ router.get("/bcv-rate", getRate);
 // Middleware para proteger las rutas siguientes
 // Verificación pública de membresía por QR estático (carnet)
 router.get("/memberships/:id/verify", verifyMembershipStatus);
+
+// Ruta para Vercel Cron (protegida con CRON_SECRET)
+router.get("/cron/check-memberships", checkMemberships);
 
 // Rutas para la configuracion de la app
 router.post("/app-config", configApp, createConfigAppController);

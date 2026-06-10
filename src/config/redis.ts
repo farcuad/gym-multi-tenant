@@ -1,21 +1,23 @@
-import { createClient } from "redis";
+// import { createClient } from "redis";
 
-// Creamos el cliente apuntando a tu variable de entorno o al localhost por defecto
-const redisClient = createClient({
-    url: process.env.REDIS_URL || "redis://localhost:6379"
-});
+// Redis deshabilitado temporalmente - consultas directas a la base de datos
+// Para reactivar, descomentar el código de abajo y las importaciones de cache en los controladores.
 
-// Escuchadores de eventos para monitorear el estado en la consola
-redisClient.on("error", (err: any) => {
-    console.error("[REDIS ERROR]: No se pudo conectar a la memoria RAM", err);
-});
+// const redisClient = createClient({
+//     url: process.env.REDIS_URL || "redis://localhost:6379"
+// });
 
-redisClient.on("connect", () => {
-    console.log("[REDIS]: Conectado exitosamente a la memoria RAM");
-});
+// redisClient.on("error", (err: any) => {
+//     console.error("[REDIS ERROR]: No se pudo conectar a la memoria RAM", err);
+// });
 
-// Iniciamos la conexión de forma asíncrona inmediatamente
-// (Top-level await es totalmente válido en las versiones modernas de Node/TS con ESM)
-await redisClient.connect();
+// redisClient.on("connect", () => {
+//     console.log("[REDIS]: Conectado exitosamente a la memoria RAM");
+// });
 
-export default redisClient;
+// await redisClient.connect();
+
+// export default redisClient;
+
+// console.log("[REDIS]: Deshabilitado. Se usarán consultas directas a la base de datos.");
+// export default null;

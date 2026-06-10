@@ -1,6 +1,5 @@
 import type { Request, Response} from 'express';
 import { createbotsConfig, getbotsConfigById, updatebotsConfigById, deletebotsConfigById } from '../models/BotConfig.js';
-import { getBotConfigCache, setBotConfigCache, invalidateBotConfigCache } from '../service/botConfigCache.service.js';
 
 // funcion para crear la configuracion del bot
 export const createbotsConfigController = async (req: Request, res: Response) => {
@@ -8,8 +7,6 @@ export const createbotsConfigController = async (req: Request, res: Response) =>
         const gym_id = req.user.gym_id;
         const data = req.body;
         const result = await createbotsConfig(data, gym_id);
-        // Invalidamos la cache
-        await invalidateBotConfigCache(gym_id);
         return res.status(201).json(result);
     } catch (error) {
         console.error(error);
@@ -21,17 +18,10 @@ export const createbotsConfigController = async (req: Request, res: Response) =>
 export const getbotsConfigByIdController = async (req: Request, res: Response) => {
     try {
         const gym_id = req.user.gym_id;
-        // Verificamos cache
-        const cacheConfig = await getBotConfigCache(gym_id);
-        if (cacheConfig) {
-            return res.status(200).json({ message: "Bots obtenidos de caché", bots: cacheConfig });
-        }
         const result = await getbotsConfigById(gym_id);
         if (!result) {
             return res.status(404).json({ message: 'Configuracion del bot no encontrada' });
         }
-        // Guardamos en cache
-        await setBotConfigCache(gym_id, result);
         return res.status(200).json({ message: "Bots obtenidos correctamente", bots: result});
     } catch (error) {
         console.error(error);
@@ -49,8 +39,6 @@ export const updatebotsConfigByIdController = async (req: Request, res: Response
         if (!result) {
             return res.status(404).json({ message: 'Configuracion del bot no encontrada' });
         }
-        // Invalidamos cache
-        await invalidateBotConfigCache(gym_id);
         return res.status(200).json(result);
     } catch (error) {
         console.error(error);
@@ -67,8 +55,6 @@ export const deletebotsConfigByIdController = async (req: Request, res: Response
         if (!result) {
             return res.status(404).json({ message: 'Configuracion del bot no encontrada' });
         }
-        // Invalidamos cache
-        await invalidateBotConfigCache(gym_id);
         return res.status(200).json({ message: 'Configuracion del bot eliminada correctamente' });
     } catch (error) {
         console.error(error);

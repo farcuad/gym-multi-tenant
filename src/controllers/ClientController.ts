@@ -1,13 +1,7 @@
 import type { Request, Response } from "express";
 import { registerClient, getClientsByGymId, getClientById, updateClientById, deleteClientById, alertClientExpired, getClientByCedula } from "../models/Clients.js";
 import { z } from "zod";
-import {
-    getClientsListCache,
-    setClientsListCache,
-    invalidateClientCache,
-    getSingleClientCache,
-    setSingleClientCache
-} from "../service/clientCache.service.js";
+
 // funcion para crear un nuevo cliente
 export const createClient = async (req: Request, res: Response) => {
     try {
@@ -22,8 +16,6 @@ export const createClient = async (req: Request, res: Response) => {
 
         const clientData = { ...req.body, gym_id: gym_id_token };
         const client = await registerClient(clientData);
-        // Limpiamos la caché del gimnasio para forzar la recarga en la próxima petición
-        await invalidateClientCache(Number(gym_id_token));
 
         res.status(201).json({ message: "Cliente registrado correctamente", client });
     } catch (error) {
@@ -37,14 +29,7 @@ export const fetchClientsByGymId = async (req: Request, res: Response) => {
         // Obtenemos el gym_id de los parametros de la ruta
         const gym_id = req.user.gym_id;
         // Obtenemos los clientes del gimnasio
-        const cacheClients = await getClientsListCache(Number(gym_id));
-        if (cacheClients) {
-            return res.status(200).json({ message: "Clientes obtenidos correctamente de la caché", clients: cacheClients });
-        }
-        // Obtenemos los clientes del gimnasio
         const clients = await getClientsByGymId(Number(gym_id));
-        // Guardamos los clientes en caché
-        await setClientsListCache(Number(gym_id), clients);
 
         res.status(200).json({ message: "Clientes obtenidos correctamente", clients });
     } catch (error) {
@@ -62,10 +47,6 @@ export const fetchClientById = async (req: Request, res: Response) => {
         const id = Number(req.params.id);
         // Obtenemos el gym_id del usuario autenticado
         const gym_id = req.user.gym_id;
-        const cacheClient = await getSingleClientCache(Number(gym_id), id);
-        if (cacheClient) {
-            return res.status(200).json({ message: "Cliente obtenido correctamente", client: cacheClient });
-        }
         // Obtenemos el cliente por id
         const client = await getClientById(id, Number(gym_id));
         // Verificamos si el cliente existe
@@ -95,8 +76,6 @@ export const updateClient = async (req: Request, res: Response) => {
         if (!updatedClient) {
             return res.status(404).json({ error: "Cliente no encontrado o datos no proporcionados" });
         }
-        // Invalida la caché del cliente
-        await invalidateClientCache(Number(gym_id), id);
         res.status(200).json({ message: "Cliente actualizado correctamente", client: updatedClient });
     } catch (error) {
         // Utilizamos zod para una mejor respuesta de error
@@ -121,7 +100,6 @@ export const deleteClient = async (req: Request, res: Response) => {
         if (!deleted) {
             return res.status(404).json({ error: "Cliente no encontrado" });
         }
-        await invalidateClientCache(Number(gym_id), id);
         res.status(200).json({ message: "Cliente eliminado correctamente" });
     } catch (error: any) {
         if (error.code === '23503') {
