@@ -51,7 +51,7 @@ export const sendMembershipNotification = async (data: NotificationData) => {
             WHERE c.id = $1 AND g.id = $2
         `;
         const result = await query(sql, [data.client_id, data.gym_id]);
-        
+
         if (result.rows.length === 0) return;
 
         const { name, phone, name_gym, cedula } = result.rows[0];
@@ -76,33 +76,32 @@ export const sendMembershipNotification = async (data: NotificationData) => {
         if (data.is_renewal) {
             // Plantilla de Renovación
             mensaje = `✅ *¡MEMBRESÍA RENOVADA!* ✅\n\n` +
-                      `Hola *${name}*, ¡qué bueno tenerte de vuelta en *${name_gym}*! 💪\n\n` +
-                      `Tu renovación ha sido procesada con éxito:\n` +
-                      `━━━━━━━━━━━━━━━━━━\n` +
-                      `📦 *Plan:* ${data.plan_name}\n` +
-                      `💵 *Inversión:* ${data.price}$\n` +
-                      `📅 *Válida desde:* ${fInicio}\n` +
-                      `📅 *Vence el:* ${fFin}\n` +
-                      `━━━━━━━━━━━━━━━━━━\n\n` +
-                      `¡Gracias por tu lealtad y por seguir entrenando con nosotros! 🔥🏋️‍♂️`;
+                `Hola *${name}*, ¡qué bueno tenerte de vuelta en *${name_gym}*! 💪\n\n` +
+                `Tu renovación ha sido procesada con éxito:\n` +
+                `━━━━━━━━━━━━━━━━━━\n` +
+                `📦 *Plan:* ${data.plan_name}\n` +
+                `💵 *Inversión:* ${data.price}$\n` +
+                `📅 *Válida desde:* ${fInicio}\n` +
+                `📅 *Vence el:* ${fFin}\n` +
+                `━━━━━━━━━━━━━━━━━━\n\n` +
+                `¡Gracias por tu lealtad y por seguir entrenando con nosotros! 🔥🏋️‍♂️`;
         } else {
             console.log("🚀 Enviando notificación de bienvenida...");
             // Plantilla de Bienvenida
             mensaje = `🎉 *¡BIENVENIDO A ${name_gym.toUpperCase()}!* 🎉\n\n` +
-                      `Hola *${name}*, nos emociona que te hayas unido a nuestra familia. 🙌\n\n` +
-                      `Tu membresía ya está activa y lista para usar:\n` +
-                      `━━━━━━━━━━━━━━━━━━\n` +
-                      `🔥 *Plan Activo:* ${data.plan_name}\n` +
-                      `💵 *Precio:* ${data.price}$\n` +
-                      `🗓️ *Inicia:* ${fInicio}\n` +
-                      `🗓️ *Vence:* ${fFin}\n` +
-                      `━━━━━━━━━━━━━━━━━━\n\n` +
-                      `📱 *¡DESCARGA NUESTRA APP!* 📱\n` +
-                      `Para ingresar al gimnasio, ahora generas tu acceso desde nuestra aplicación:\n\n` +
-                      `1️⃣ Descarga la App aquí: https://frontend-gym-topaz.vercel.app/login\n` +
-                      `2️⃣ Ingresa con tu número de *Cédula*.\n` +
-                      `3️⃣ Y descarga la app!.\n\n` +
-                      `¡A darle con todo! 💪🔥`;
+                `Hola *${name}*, nos emociona que te hayas unido a nuestra familia. 🙌\n\n` +
+                `Tu membresía ya está activa y lista para usar:\n` +
+                `━━━━━━━━━━━━━━━━━━\n` +
+                `🔥 *Plan Activo:* ${data.plan_name}\n` +
+                `💵 *Precio:* ${data.price}$\n` +
+                `🗓️ *Inicia:* ${fInicio}\n` +
+                `🗓️ *Vence:* ${fFin}\n` +
+                `━━━━━━━━━━━━━━━━━━\n\n` +
+                `📱 *¡DESCARGA NUESTRA APP!* 📱\n` +
+                `Para ingresar al gimnasio, ahora generas tu acceso desde nuestra aplicación:\n\n` +
+                `1️⃣ Descarga la App aquí: https://frontend-gym-topaz.vercel.app/login\n` +
+                `2️⃣ Ingresa con tu número de *Cédula*.\n` +
+                `¡A darle con todo! 💪🔥`;
         }
 
         // Enviar mensaje de texto principal
