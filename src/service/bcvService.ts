@@ -2,7 +2,13 @@ import axios from 'axios';
 import * as cheerio from 'cheerio';
 import https from 'https';
 
-export const getBcvRate = async (): Promise<number | null> => {
+export interface BcvRates {
+  usd: number;
+  eur: number;
+  updatedAt: string;
+}
+
+export const getBcvRate = async (): Promise<BcvRates | null> => {
   try {
     // Agente para ignorar problemas de certificado SSL del BCV si ocurren
     const agent = new https.Agent({  
@@ -23,14 +29,20 @@ export const getBcvRate = async (): Promise<number | null> => {
 
     // El BCV pone el valor del dólar en el contenedor con ID "dolar"
     // Estructura: <div id="dolar"> ... <strong> 36,50 </strong> ... </div>
-    const rawRate = $('#dolar strong').text().trim();
+    const rawUsd = $('#dolar strong').text().trim();
+    const rawEuro = $('#euro strong').text().trim();
 
-    if (!rawRate) throw new Error("No se pudo encontrar el valor en el HTML");
+    if (!rawUsd || !rawEuro) throw new Error("No se pudo encontrar el valor en el HTML");
 
     // Limpiamos la string: cambiamos coma por punto y convertimos a número
-    const cleanRate = parseFloat(rawRate.replace(',', '.'));
+    const usd = parseFloat(rawUsd.replace(/\./g, '').replace(',', '.'));
+    const eur = parseFloat(rawEuro.replace(/\./g, '').replace(',', '.'));
 
-    return cleanRate;
+    return {
+      usd,
+      eur,
+      updatedAt: new Date().toISOString()
+    };
   } catch (error) {
     console.error('Error haciendo scraping al BCV:', (error as Error).message);
     return null;
