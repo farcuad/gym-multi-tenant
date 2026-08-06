@@ -15,7 +15,7 @@ import { requirePlan } from "../middleware/requirePlan.js";
 import { loadSubscription } from "../middleware/loadSubcription.js";
 import { getSubscription } from "../controllers/SubsCriptionController.js";
 import { getMetricsPayments, getMetricsNewClients, getFinanzasMetrics } from "../controllers/MetricasController.js";
-import { getRate } from "../controllers/BcvController.js";
+import { getRates } from "../controllers/BcvController.js";
 import { createbotsConfigController, getbotsConfigByIdController, updatebotsConfigByIdController, deletebotsConfigByIdController } from "../controllers/BotConfigController.js";
 import { createExercise, fetchExercises, fetchExerciseById, updateExercise, deleteExercise } from "../controllers/ExerciseController.js";
 import {
@@ -40,7 +40,7 @@ router.post("/logout", logoutSession);
 // Rutas para recuperación de contraseña
 router.post("/admin/forgot-password", forgotPassword);
 router.post("/admin/password", resetPassword);
-router.get("/bcv-rate", getRate);
+router.get("/bcv-rate", getRates);
 // Middleware para proteger las rutas siguientes
 // Verificación pública de membresía por QR estático (carnet)
 router.get("/memberships/:id/verify", verifyMembershipStatus);

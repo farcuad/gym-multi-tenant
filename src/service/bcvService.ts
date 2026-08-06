@@ -48,3 +48,29 @@ export const getBcvRate = async (): Promise<BcvRates | null> => {
     return null;
   }
 };
+
+export const getCopTrm = async (): Promise<number | null> => {
+  try {
+    const response = await axios.get('https://www.datos.gov.co/resource/32sa-8pi3.json', {
+      params: {
+        '$order': 'vigenciahasta DESC',
+        '$limit': 1
+      },
+      headers: {
+        'Accept': 'application/json',
+        'User-Agent': 'Mozilla/5.0'
+      },
+      timeout: 8000
+    });
+
+    if (response.data && response.data.length > 0) {
+      // "valor" viene como String ej: "4050.50"
+      return parseFloat(response.data[0].valor);
+    }
+
+    return null;
+  } catch (error) {
+    console.error('Error obteniendo la TRM de Colombia:', (error as Error).message);
+    return null;
+  }
+};
